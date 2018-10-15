@@ -1,5 +1,6 @@
 import requests
 import json
+from lxml import etree
 import public_function
 
 
@@ -12,9 +13,6 @@ class TaiwanStock():
             'http://www.twse.com.tw/zh/stockSearch/stockSearch',
             headers=self.function.get_browser_headers(
                 'http://www.twse.com.tw/zh/stockSearch/stockSearch'))
-        text = response.text.replace('callback', '')
-        text = text[1:]
-        text = text[:len(text) - 1]
-        objects = json.loads(text)
-
-        return objects    
+        html = etree.HTML(response)
+        code_list = html.xpath('//table[@class="grid"]//a/text()')
+        return code_list        
