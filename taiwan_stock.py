@@ -15,5 +15,5 @@ class TaiwanStock():
                 'http://www.twse.com.tw/zh/stockSearch/stockSearch'))
         html = etree.HTML(response.text)
         code_list = html.xpath('//table[@class="grid"]//a/substring(text(), 1, 4)')
-        return code_list
+        return html
         
