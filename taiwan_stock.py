@@ -1,6 +1,6 @@
 import requests
-import json
 from lxml import etree
+
 import public_function
 
 
@@ -9,11 +9,13 @@ class TaiwanStock():
 
     def get_stock_list(self):
         """取得台股上巿股票列表頁面"""
+        stock_list = []
         response = requests.get(
             'http://www.twse.com.tw/zh/stockSearch/stockSearch',
             headers=self.function.get_browser_headers(
                 'http://www.twse.com.tw/zh/stockSearch/stockSearch'))
-        html = etree.HTML(response.text)
-        code_list = html.xpath('//table[@class="grid"]//a/substring(text(), 1, 4)')
-        return html
-        
+        tre = etree.HTML(response.text)
+        code_list = tre.xpath('//table[@class="grid"]//a/text()')
+        for code in code_list:
+            stock_list.append([code[0:4], code[4:]])
+        return stock_list
