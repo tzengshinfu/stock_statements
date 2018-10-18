@@ -19,3 +19,8 @@ class TaiwanStock():
         for code in code_list:
             stock_list.append([code[0:4], code[4:]])
         return stock_list
+
+    def get detail_data(self):
+        # https://www.cnyes.com/twstock/financial4.aspx
+        # //table[@id="ctl00_ContentPlaceHolder1_GridView1"]//tr/td[1]/string(.)
+        return ''
