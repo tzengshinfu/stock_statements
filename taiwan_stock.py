@@ -12,15 +12,17 @@ class TaiwanStock():
         stock_list = []
         response = requests.get(
             'http://www.twse.com.tw/zh/stockSearch/stockSearch',
-            headers=self.function.get_browser_headers(
-                'http://www.twse.com.tw/zh/stockSearch/stockSearch'))
-        tre = etree.HTML(response.text)
-        code_list = tre.xpath('//table[@class="grid"]//a/text()')
+            headers=self.function.get_browser_headers())
+        tree = etree.HTML(response.text)
+        code_list = tree.xpath('//table[@class="grid"]//a/text()')
         for code in code_list:
             stock_list.append([code[0:4], code[4:]])
         return stock_list
 
-    def get detail_data(self):
-        # https://www.cnyes.com/twstock/financial4.aspx
-        # //table[@id="ctl00_ContentPlaceHolder1_GridView1"]//tr/td[1]/string(.)
-        return ''
+    def get_detail_data(self):
+        response = requests.get(
+            'https://www.cnyes.com/twstock/financial4.aspx',
+            headers=self.function.get_browser_headers())
+        tree = etree.HTML(response.text)
+        detail_list = tree.xpath('//table[@id="ctl00_ContentPlaceHolder1_GridView1"]//tr/td[1]/string(.)')
+        return detail_list
