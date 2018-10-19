@@ -20,9 +20,19 @@ class TaiwanStock():
         return stock_list
 
     def get_detail_data(self):
-        response = requests.get(
-            'https://www.cnyes.com/twstock/financial4.aspx',
-            headers=self.function.get_browser_headers())
-        tree = etree.HTML(response.text)
-        detail_list = tree.xpath('//table[@id="ctl00_ContentPlaceHolder1_GridView1"]//tr/td[1]/string(.)')
-        return detail_list
+        response = self.get_response(
+            'https://www.cnyes.com/twstock/financial4.aspx')
+        if type(response[1]) is not None:
+            tree = etree.HTML(response[1].text)
+            detail_list = tree.xpath(
+                '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]//tr/td[1]/string(.)'
+            )
+            return detail_list
+
+    def get_response(self, url):
+        try:
+            response = requests.get(
+                url, headers=self.function.get_browser_headers())
+            return [response, None]
+        except requests.ConnectionError as ex:
+            return [None, ex]
