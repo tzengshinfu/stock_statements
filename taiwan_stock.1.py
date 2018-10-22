@@ -2,29 +2,7 @@ import requests
 from lxml import etree
 from bs4 import BeautifulSoup
 import public_function
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.ssl_ import create_urllib3_context
 
-# This is the 2.11 Requests cipher string, containing 3DES.
-CIPHERS = (
-    'ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+HIGH:'
-    'DH+HIGH:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+HIGH:RSA+3DES:!aNULL:'
-    '!eNULL:!MD5'
-)
-
-class DESAdapter(HTTPAdapter):
-    """
-    A TransportAdapter that re-enables 3DES support in Requests.
-    """
-    def init_poolmanager(self, *args, **kwargs):
-        context = create_urllib3_context(ciphers=CIPHERS)
-        kwargs['ssl_context'] = context
-        return super(DESAdapter, self).init_poolmanager(*args, **kwargs)
-
-    def proxy_manager_for(self, *args, **kwargs):
-        context = create_urllib3_context(ciphers=CIPHERS)
-        kwargs['ssl_context'] = context
-        return super(DESAdapter, self).proxy_manager_for(*args, **kwargs)
 
 class TaiwanStock():
     function = public_function.PublicFunction()
@@ -61,13 +39,17 @@ class TaiwanStock():
 
     def post_response(self, url):
         try:
+            session = requests.Session()
+            session.headers.update(self.function.get_browser_headers(url))
+            response = session.get(url)
+            soup = BeautifulSoup(response.content, 'html5lib')
             form_data = {
                 '__VIEWSTATE':
-                '',
-                '__EVENTTARGET':
-                '',
-                '__EVENTARGUMENT':
-                '',
+                soup.find('input', attrs={'name': '__VIEWSTATE'})['value'],
+                "__EVENTTARGET":
+                "",
+                "__EVENTARGUMENT":
+                "",
                 'ctl00$ContentPlaceHolder1$D1':
                 'T',
                 'ctl00$ContentPlaceHolder1$D2':
@@ -75,7 +57,7 @@ class TaiwanStock():
                 'ctl00$ContentPlaceHolder1$D3':
                 '2018Q2'
             }
-            response = requests.get(url=url)
+            response = session.post(url=url, data=form_data)
             return response
         except Exception as ex:
             return ex

@@ -12,6 +12,7 @@ CIPHERS = (
     '!eNULL:!MD5'
 )
 
+
 class DESAdapter(HTTPAdapter):
     """
     A TransportAdapter that re-enables 3DES support in Requests.
@@ -61,13 +62,19 @@ class TaiwanStock():
 
     def post_response(self, url):
         try:
+            session = requests.Session()
+            session.headers.update(self.function.get_browser_headers(url))
+            
+            session.mount(url, HTTPAdapter)
+            response = session.get(url)
+            soup = BeautifulSoup(response.content, 'html5lib')
             form_data = {
                 '__VIEWSTATE':
-                '',
-                '__EVENTTARGET':
-                '',
-                '__EVENTARGUMENT':
-                '',
+                soup.find('input', attrs={'name': '__VIEWSTATE'})['value'],
+                "__EVENTTARGET":
+                "",
+                "__EVENTARGUMENT":
+                "",
                 'ctl00$ContentPlaceHolder1$D1':
                 'T',
                 'ctl00$ContentPlaceHolder1$D2':
@@ -75,7 +82,7 @@ class TaiwanStock():
                 'ctl00$ContentPlaceHolder1$D3':
                 '2018Q2'
             }
-            response = requests.get(url=url)
+            response = session.post(url=url, data=form_data)
             return response
         except Exception as ex:
             return ex
