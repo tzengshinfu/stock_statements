@@ -1,30 +1,9 @@
 import requests
 from lxml import etree
-from bs4 import BeautifulSoup
 import public_function
 from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.ssl_ import create_urllib3_context
+from requests.packages.urllib3.util.retry import Retry
 
-# This is the 2.11 Requests cipher string, containing 3DES.
-CIPHERS = (
-    'ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+HIGH:'
-    'DH+HIGH:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+HIGH:RSA+3DES:!aNULL:'
-    '!eNULL:!MD5'
-)
-
-class DESAdapter(HTTPAdapter):
-    """
-    A TransportAdapter that re-enables 3DES support in Requests.
-    """
-    def init_poolmanager(self, *args, **kwargs):
-        context = create_urllib3_context(ciphers=CIPHERS)
-        kwargs['ssl_context'] = context
-        return super(DESAdapter, self).init_poolmanager(*args, **kwargs)
-
-    def proxy_manager_for(self, *args, **kwargs):
-        context = create_urllib3_context(ciphers=CIPHERS)
-        kwargs['ssl_context'] = context
-        return super(DESAdapter, self).proxy_manager_for(*args, **kwargs)
 
 class TaiwanStock():
     function = public_function.PublicFunction()
@@ -42,8 +21,10 @@ class TaiwanStock():
             return stock_list
 
     def get_detail_data(self):
-        response = self.post_response(
+        response = self.get_response(
             'https://www.cnyes.com/twstock/financial4.aspx')
+        __VIEWSTATE=response.search('id="__VIEWSTATE" value="(.*?)"',response.content).group(1)
+
         if response is not ConnectionError:
             tree = etree.HTML(response[1].text)
             detail_list = tree.xpath(
@@ -53,8 +34,13 @@ class TaiwanStock():
 
     def get_response(self, url):
         try:
-            response = requests.get(
-                url, headers=self.function.get_browser_headers(url))
+            session = requests.Session()
+            retry = Retry(connect=3, backoff_factor=0.5)
+            adapter = HTTPAdapter(max_retries=retry)
+            session.mount(url, adapter)
+
+            response = session.get(url)
+
             return response
         except Exception as ex:
             return ex
