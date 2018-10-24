@@ -1,8 +1,7 @@
 import requests
 from lxml import etree
 import public_function
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+from time import sleep
 
 
 class TaiwanStock():
@@ -23,7 +22,6 @@ class TaiwanStock():
     def get_detail_data(self):
         response = self.get_response(
             'https://www.cnyes.com/twstock/financial4.aspx')
-        __VIEWSTATE=response.search('id="__VIEWSTATE" value="(.*?)"',response.content).group(1)
 
         if response is not ConnectionError:
             tree = etree.HTML(response[1].text)
@@ -33,17 +31,16 @@ class TaiwanStock():
             return detail_list
 
     def get_response(self, url):
-        try:
-            session = requests.Session()
-            retry = Retry(connect=3, backoff_factor=0.5)
-            adapter = HTTPAdapter(max_retries=retry)
-            session.mount(url, adapter)
+        while 1:
+            try:
+                s = requests.session()
+                s.keep_alive = False
+                response = s.get(url, headers=self.function.get_browser_headers(url), verify=False)
 
-            response = session.get(url)
-
-            return response
-        except Exception as ex:
-            return ex
+                return response
+            except Exception as ex:
+                sleep(5)
+                continue
 
     def post_response(self, url):
         try:
