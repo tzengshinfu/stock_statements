@@ -1,7 +1,6 @@
 import requests
 from lxml import etree
 import public_function
-from time import sleep
 
 
 class TaiwanStock():
@@ -20,8 +19,17 @@ class TaiwanStock():
             return stock_list
 
     def get_detail_data(self):
-        response = self.get_response(
-            'https://www.cnyes.com/twstock/financial4.aspx')
+        # response = requests.get(
+        #     'https://www.cnyes.com/twstock/financial4.aspx',
+        #     headers=self.function.get_browser_headers(
+        #         'https://www.cnyes.com/twstock/financial4.aspx'),
+        #     verify=False)
+
+        response = requests.get(
+            'https://www.cnyes.com',
+            headers=self.function.get_browser_headers(
+                'https://www.cnyes.com'),
+            verify=False)
 
         if response is not ConnectionError:
             tree = etree.HTML(response[1].text)
@@ -29,36 +37,3 @@ class TaiwanStock():
                 '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]//tr/td[1]/string(.)'
             )
             return detail_list
-
-    def get_response(self, url):
-        while 1:
-            try:
-                s = requests.session()
-                s.keep_alive = False
-                response = s.get(url, headers=self.function.get_browser_headers(url), verify=False)
-
-                return response
-            except Exception as ex:
-                sleep(5)
-                continue
-
-    def post_response(self, url):
-        try:
-            form_data = {
-                '__VIEWSTATE':
-                '',
-                '__EVENTTARGET':
-                '',
-                '__EVENTARGUMENT':
-                '',
-                'ctl00$ContentPlaceHolder1$D1':
-                'T',
-                'ctl00$ContentPlaceHolder1$D2':
-                'ALL',
-                'ctl00$ContentPlaceHolder1$D3':
-                '2018Q2'
-            }
-            response = requests.get(url=url)
-            return response
-        except Exception as ex:
-            return ex
