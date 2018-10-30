@@ -4,7 +4,7 @@ import webpage_fetcher
 
 
 class TaiwanStock():
-    function = public_function.WebPageFetcher()
+    fetcher = webpage_fetcher.WebPageFetcher()
 
     def get_stock_list(self):
         """取得台股上巿股票列表頁面"""
@@ -22,7 +22,7 @@ class TaiwanStock():
         try:
             response = requests.get(
                 'https://www.cnyes.com/twstock/financial4.aspx/',
-                headers=self.function.get_browser_headers('https://www.cnyes.com/twstock/financial4.aspx/'),
+                headers=self.fetcher.get_browser_headers('https://www.cnyes.com/twstock/financial4.aspx/'),
                 verify=False)
             print(response)
         except OSError as e:
