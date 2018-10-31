@@ -1,58 +1,58 @@
-import requests
-from lxml import etree
 import webpage_fetcher
+import time
 
 
 class TaiwanStock():
-    fetcher = webpage_fetcher.WebPageFetcher()
+    fetcher = webpage_fetcher.WebpageFetcher()
 
-    def get_stock_list(self):
-        """取得台股上巿股票列表頁面"""
-        stock_list = []
-        response = self.get_response(
-            'http://www.twse.com.tw/zh/stockSearch/stockSearch')
-        if response is not ConnectionError:
-            tree = etree.HTML(response.text)
-            code_list = tree.xpath('//table[@class="grid"]//a/text()')
-            for code in code_list:
-                stock_list.append([code[0:4], code[4:]])
-            return stock_list
+    def get(self):
+        # self.get_stock_codes()
+        self.get_stock_eps()
+        self.fetcher.exit()
 
-    def get_detail_data(self):
-        try:
-            response = requests.get(
-                'https://www.cnyes.com/twstock/financial4.aspx/',
-                headers=self.fetcher.get_browser_headers('https://www.cnyes.com/twstock/financial4.aspx/'),
-                verify=False)
-            print(response)
-        except OSError as e:
-            print(e)
-        # while True:
-        #     try:
-        #         session = requests.Session()
-        #         session.mount('www.google.com', DESAdapter())
-        #         response = session.get(
-        #             'https://www.google.com/',
-        #             headers=self.function.get_browser_headers(
-        #                 'https://www.google.com/'))
-        #         print(response.json())
-        #     except OSError as e:
-        #         print(e)
-        #         time.sleep(10)
+    def get_stock_codes(self):
+        """取得台股上巿股票列表"""
+        self.fetcher.go_to('http://www.twse.com.tw/zh/stockSearch/stockSearch')
+        stock_codes = []
+        stock_links = self.fetcher.find_elements('//table[@class="grid"]//a')
+        for link in stock_links:
+            code = link.text
+            stock_codes.append([code[0:4], code[4:]])
+        return stock_codes
 
-        # response = requests.get(
-        #    'https://www.cnyes.com/twstock/financial4.aspx',
-        #    headers=self.function.get_browser_headers('https://www.cnyes.com/twstock/financial4.aspx'),
-        #    verify=False)
+    def get_stock_eps(self):
+        def get_years(self):
+            years = []
+            year_tags = self.fetcher.find_elements('//select[@id="ctl00_ContentPlaceHolder1_D3"]/option')
+            for year in year_tags:
+                years.append(year.text)
+            return years
 
-        # response = requests.get(
-        #    'https://www.reporo.com/',
-        #    headers=self.function.get_browser_headers(
-        #        'https://www.reporo.com/'))
+        def get_eps_data(self):
+            """取得台股上巿股票EPS"""
+            stock_eps = []
+            eps_records = self.fetcher.find_elements('//table[@id="ctl00_ContentPlaceHolder1_GridView1"]//tr[not(@align)]')
+            for record in eps_records:
+                eps = []
+                eps.append('2018Q3')
+                eps_fields = record.find_elements_by_tag_name('td')
+                for field in eps_fields:
+                    eps.append(field.text)
+                stock_eps.append(eps)
+            return stock_eps
 
-        # if response is not ConnectionError:
-        #    tree = etree.HTML(response[1].text)
-        #    detail_list = tree.xpath(
-        #        '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]//tr/td[1]/string(.)'
-        #    )
-        #    return detail_list
+        def get_table_data(self, year):
+            """取得台股上巿股票EPS"""
+            return self.fetcher.find_element('//table[@id="ctl00_ContentPlaceHolder1_GridView1"]').text
+
+        self.fetcher.go_to('https://www.cnyes.com/twstock/financial4.aspx')
+        years = get_years(self)
+        pre_eps_table_text = ''
+        for year in years:
+            self.fetcher.find_element('//select[@id="ctl00_ContentPlaceHolder1_D3"]/option[text()="' + year + '"]').click()
+            current_eps_table_text = get_table_data(self, year)
+            while current_eps_table_text == pre_eps_table_text:
+                time.sleep(0.2)
+                current_eps_table_text = get_table_data(self, year)
+
+            pre_eps_table_text = get_table_data(self, year)

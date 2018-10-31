@@ -1,11 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 
 class WebpageFetcher():
@@ -39,7 +35,7 @@ class WebpageFetcher():
 
         self.browser = webdriver.Chrome(
             executable_path='chromedriver.exe', chrome_options=options)
-        self.wait = WebDriverWait(self.browser, 10)
+        self.wait = WebDriverWait(driver=self.browser, timeout=30)
 
     def go_to(self, url):
         self.browser.get(url)
@@ -61,7 +57,12 @@ class WebpageFetcher():
 
     def find_element(self, element_xpath):
         item = self.wait.until(
-            EC.element_to_be_clickable((By.XPATH, element_xpath)))
+            EC.presence_of_element_located((By.XPATH, element_xpath)))
+        return item
+
+    def find_elements(self, element_xpath):
+        item = self.wait.until(
+            EC.presence_of_all_elements_located((By.XPATH, element_xpath)))
         return item
 
     def switch_to_frame(self, element_xpath):
