@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+import requests
 
 
 class WebpageFetcher():
@@ -78,3 +79,21 @@ class WebpageFetcher():
                 self.main_window = self.browser.window_handles[0]
                 self.sub_window = self.browser.window_handles[1]
                 break
+
+    def get_response(self, url, method, data):
+        def get_browser_headers():
+            """取得瀏覽器Request Header"""
+            browser_headers = {
+                'user-agent':
+                'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'
+            }
+            return browser_headers
+
+        if method == 'GET':
+            response = requests.get(
+                url, params=data, headers=get_browser_headers(), verify=False)
+        elif method == 'POST':
+            response = requests.post(
+                url, data=data, headers=get_browser_headers(), verify=False)
+
+        return response

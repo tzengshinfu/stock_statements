@@ -11,6 +11,9 @@
 			"--max-line-length=200"
 		],
 		"cSpell.words": [
+			"etree",
+			"khtml",
+			"lxml",
 			"prefs",
 			"setuid",
 			"xpath"
