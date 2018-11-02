@@ -19,7 +19,7 @@ class TaiwanStock():
         """取得台股上巿股票列表"""
         stock_codes = []
         response = self.fetcher.get_response(
-            'http://www.twse.com.tw/zh/stockSearch/stockSearch', 'GET')
+            'http://www.twse.com.tw/zh/stockSearch/stockSearch', 'get')
         tree = etree.HTML(response.text)
         codes = tree.xpath('//table[@class="grid"]//a/text()')
         for code in codes:
@@ -30,7 +30,7 @@ class TaiwanStock():
         """取得台股上巿股票基本資料"""
         stock_basic = []
         response = self.fetcher.get_response(
-            'http://mops.twse.com.tw/mops/web/t05st03', 'POST', data='firstin=1&co_id=' + stock_id)
+            'http://mops.twse.com.tw/mops/web/t05st03', 'post', data='firstin=1&co_id=' + stock_id)
         tree = etree.HTML(response.text)
         establishment_date = tree.xpath('//table[@class="hasBorder"]//tr[position()=8]/td[@class="lColor" and position()=1]')
         capital_amount = tree.xpath('//table[@class="hasBorder"]//tr[position()=9]/td[@class="lColor" and position()=1]')
@@ -39,7 +39,6 @@ class TaiwanStock():
         stock_basic.append(industry[0].text.strip())
         stock_basic.append(establishment_date[0].text.strip())
         stock_basic.append(capital_amount[0].text.strip().replace('元', '').replace(',', ''))
-        # stock_links = self.fetcher.find_elements('//table[@class="grid"]//a')
         return stock_basic
 
     def get_stock_eps(self):
