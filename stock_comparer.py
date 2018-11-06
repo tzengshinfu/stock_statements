@@ -8,12 +8,12 @@ from PIL import Image
 
 if __name__ == '__main__':
     fetcher = webpage_fetcher.WebpageFetcher()
-    # path = fetcher.download_file('http://www.twse.com.tw/downloads/zh/about/company/Annual/90/32.pdf')
+    path = fetcher.download_file('http://doc.twse.com.tw/pdf/201801_1101_AI1_20181106_162245.pdf')
     # xml = fetcher.get_xml_from_pdf('D:\\Temp\\32.pdf')
     # tree = etree.fromstring(xml)
     # fetcher.exit()
     # print(xml)
-    file_list = fetcher.get_images_from_pdf('D:\\Temp\\a.pdf')
+    file_list = fetcher.get_images_from_pdf(path)
     print(file_list)
     # code = pytesseract.image_to_string(Image.open(file_list[1]), lang='chi_tra+eng')
     # print(code)
