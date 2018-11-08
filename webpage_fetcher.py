@@ -4,11 +4,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 import requests
 import tempfile
-import subprocess
 import sys
 import lazy_object_proxy
-from wand.image import Image as image_converter
-import glob
 
 
 class WebpageFetcher():
@@ -127,18 +124,3 @@ class WebpageFetcher():
                 if chunk:
                     stream.write(chunk)
         return file_path
-
-    def get_xml_from_pdf(self, pdf_path):
-        xml = subprocess.check_output(
-            ['python', self.script_path + '\\' + 'pdf2txt.py', '-t', 'xml', pdf_path],
-            shell=False)
-        return xml
-
-    def get_images_from_pdf(self, pdf_path):
-        pdf_file = image_converter(filename=pdf_path, resolution=300)
-        pdf_file.compression_quality = 100
-        pdf_file.type = 'bilevel'
-        image_name = pdf_path.split('\\')[-1].split('.')[0]
-        pdf_file.save(filename=self.tempfile_path + '\\' + image_name + '.jpg')
-        image_paths = glob.glob(self.tempfile_path + '\\' + image_name + '-' + '*.jpg')
-        return image_paths

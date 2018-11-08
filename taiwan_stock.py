@@ -42,48 +42,50 @@ class TaiwanStock():
         return stock_basic
 
     def get_stock_eps(self):
-        def get_years():
-            """取得EPS年度"""
-            result = []
-            year_tags = self.fetcher.find_elements(
-                '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option')
-            for tag in year_tags:
-                result.append(tag.text)
-            return result
-
-        def get_records(year):
-            """取得EPS資料"""
-            result = []
-            eps_records = self.fetcher.find_elements(
-                '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]//tr[not(@align)]'
-            )
-            for record in eps_records:
-                eps = []
-                eps.append(year)
-                eps_fields = record.find_elements_by_tag_name('td')
-                for field in eps_fields:
-                    eps.append(field.text)
-                result.append(eps)
-            return result
-
-        def get_current_table_content():
-            """取得EPS表格內容"""
-            return self.fetcher.find_element(
-                '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]').text
-
         stock_eps = []
         self.fetcher.go_to('https://www.cnyes.com/twstock/financial4.aspx')
-        eps_years = get_years(self)
+        eps_years = self.get_years('//select[@id="ctl00_ContentPlaceHolder1_D3"]/option')
         previous_eps_table_content = ''
         for year in eps_years:
             self.fetcher.find_element(
                 '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option[text()="'
                 + year + '"]').click()
             # 因為當年度的EPS表格是以AJAX載入,所以要反覆取得跟前次表格內容比對以判斷載入是否完成
-            current_eps_table_content = get_current_table_content()
+            current_eps_table_content = self.get_table_content('//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
             while current_eps_table_content == previous_eps_table_content:  # 重新執行直到取得當年度的資料
                 time.sleep(0.2)
-                current_eps_table_content = get_current_table_content()
-            stock_eps.append(get_records(year))
-            previous_eps_table_content = get_current_table_content()
+                current_eps_table_content = self.get_table_content('//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
+            stock_eps.append(self.get_records(year, '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]//tr[not(@align)]'))
+            previous_eps_table_content = self.get_table_content('//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
         return stock_eps
+
+    # TODO(tzengshinfu@gmail.com): 與方法[get_stock_eps]合併。
+    def get_stock_balance_sheet(self):
+        stock_balance_sheet = []
+        self.fetcher.go_to('http://www.cnyes.com/twstock/bs/1101.htm')
+
+    def get_table_content(self, element_xpath):
+        """取得表格內容"""
+        table_content = self.fetcher.find_element(element_xpath).text
+        return table_content
+
+    def get_years(self, element_xpath):
+        """取得年度"""
+        years = []
+        year_tags = self.fetcher.find_elements(element_xpath)
+        for tag in year_tags:
+            years.append(tag.text)
+        return years
+
+    def get_records(self, year, element_xpath):
+        """取得資料"""
+        records = []
+        eps_records = self.fetcher.find_elements(element_xpath)
+        for record in eps_records:
+            eps = []
+            eps.append(year)
+            eps_fields = record.find_elements_by_tag_name('td')
+            for field in eps_fields:
+                eps.append(field.text)
+            records.append(eps)
+        return records

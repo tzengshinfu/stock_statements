@@ -16,6 +16,7 @@
 			"khtml",
 			"lxml",
 			"prefs",
+			"pytesseract",
 			"setuid",
 			"xpath"
 		]
