@@ -10,7 +10,12 @@ class TaiwanStock():
         stock_basic = self.get_stock_basic('1110')
         print(stock_basic)
         # stock_codes = self.get_stock_codes()
-        # stock_eps = self.get_stock_eps()
+        stock = self.StockSheet(
+            'https://www.cnyes.com/twstock/financial4.aspx',
+            '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option',
+            '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option[text()="',
+            '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
+        stock_sheet = self.get_stock_sheet(stock)
         # print(stock_codes)
         # print(stock_eps)
         self.fetcher.exit()
@@ -30,34 +35,59 @@ class TaiwanStock():
         """取得台股上巿股票基本資料"""
         stock_basic = []
         response = self.fetcher.get_response(
-            'http://mops.twse.com.tw/mops/web/t05st03', 'post', data='firstin=1&co_id=' + stock_id)
+            'http://mops.twse.com.tw/mops/web/t05st03',
+            'post',
+            data='firstin=1&co_id=' + stock_id)
         tree = etree.HTML(response.text)
-        establishment_date = tree.xpath('//table[@class="hasBorder"]//tr[position()=8]/td[@class="lColor" and position()=1]')
-        capital_amount = tree.xpath('//table[@class="hasBorder"]//tr[position()=9]/td[@class="lColor" and position()=1]')
-        industry = tree.xpath('//table[@class="hasBorder"]//tr[position()=1]/td[@class="lColor" and position()=2]')
+        establishment_date = tree.xpath(
+            '//table[@class="hasBorder"]//tr[position()=8]/td[@class="lColor" and position()=1]'
+        )
+        capital_amount = tree.xpath(
+            '//table[@class="hasBorder"]//tr[position()=9]/td[@class="lColor" and position()=1]'
+        )
+        industry = tree.xpath(
+            '//table[@class="hasBorder"]//tr[position()=1]/td[@class="lColor" and position()=2]'
+        )
         stock_basic.append(stock_id)
         stock_basic.append(industry[0].text.strip())
         stock_basic.append(establishment_date[0].text.strip())
-        stock_basic.append(capital_amount[0].text.strip().replace('元', '').replace(',', ''))
+        stock_basic.append(capital_amount[0].text.strip().replace('元',
+                                                                  '').replace(
+                                                                      ',', ''))
         return stock_basic
 
     def get_stock_eps(self):
         stock_eps = []
         self.fetcher.go_to('https://www.cnyes.com/twstock/financial4.aspx')
-        eps_years = self.get_years('//select[@id="ctl00_ContentPlaceHolder1_D3"]/option')
+        eps_years = self.get_years(
+            '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option')
         previous_eps_table_content = ''
         for year in eps_years:
             self.fetcher.find_element(
                 '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option[text()="'
                 + year + '"]').click()
             # 因為當年度的EPS表格是以AJAX載入,所以要反覆取得跟前次表格內容比對以判斷載入是否完成
-            current_eps_table_content = self.get_table_content('//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
+            current_eps_table_content = self.get_table_content(
+                '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
             while current_eps_table_content == previous_eps_table_content:  # 重新執行直到取得當年度的資料
                 time.sleep(0.2)
-                current_eps_table_content = self.get_table_content('//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
-            stock_eps.append(self.get_records(year, '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]//tr[not(@align)]'))
-            previous_eps_table_content = self.get_table_content('//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
+                current_eps_table_content = self.get_table_content(
+                    '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
+            stock_eps.append(
+                self.get_records(
+                    year,
+                    '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]//tr[not(@align)]'
+                ))
+            previous_eps_table_content = self.get_table_content(
+                '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
         return stock_eps
+
+    @dataclass
+    class StockSheet:
+        url: str
+        years: str
+        button: str
+        table: str
 
     # TODO(tzengshinfu@gmail.com): 與方法[get_stock_eps]合併。
     def get_stock_balance_sheet(self):
@@ -89,3 +119,29 @@ class TaiwanStock():
                 eps.append(field.text)
             records.append(eps)
         return records
+
+    def get_stock_sheet(self, stock_sheet1):
+        stock_sheet = []
+        self.fetcher.go_to('https://www.cnyes.com/twstock/financial4.aspx')
+        eps_years = self.get_years(
+            '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option')
+        previous_eps_table_content = ''
+        for year in eps_years:
+            self.fetcher.find_element(
+                '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option[text()="'
+                + year + '"]').click()
+            # 因為當年度的EPS表格是以AJAX載入,所以要反覆取得跟前次表格內容比對以判斷載入是否完成
+            current_eps_table_content = self.get_table_content(
+                '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
+            while current_eps_table_content == previous_eps_table_content:  # 重新執行直到取得當年度的資料
+                time.sleep(0.2)
+                current_eps_table_content = self.get_table_content(
+                    '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
+            stock_sheet.append(
+                self.get_records(
+                    year,
+                    '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]//tr[not(@align)]'
+                ))
+            previous_eps_table_content = self.get_table_content(
+                '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
+        return stock_sheet
