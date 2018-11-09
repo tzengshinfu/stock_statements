@@ -12,8 +12,7 @@ class TaiwanStock():
         # stock_codes = self.get_stock_codes()
         stock = self.StockSheet(
             'https://www.cnyes.com/twstock/financial4.aspx',
-            '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option',
-            '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option[text()="',
+            '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option'
             '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
         stock_sheet = self.get_stock_sheet(stock)
         # print(stock_codes)
@@ -86,13 +85,16 @@ class TaiwanStock():
     class StockSheet:
         url: str
         years: str
-        button: str
         table: str
 
     # TODO(tzengshinfu@gmail.com): 與方法[get_stock_eps]合併。
     def get_stock_balance_sheet(self):
         stock_balance_sheet = []
-        self.fetcher.go_to('http://www.cnyes.com/twstock/bs/1101.htm')
+        stock = self.StockSheet(
+            'https://www.cnyes.com/twstock/financial4.aspx',
+            '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option'
+            '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
+        stock_balance_sheet = self.get_stock_sheet(stock)
 
     def get_table_content(self, element_xpath):
         """取得表格內容"""
@@ -122,26 +124,26 @@ class TaiwanStock():
 
     def get_stock_sheet(self, stock_sheet1):
         stock_sheet = []
-        self.fetcher.go_to('https://www.cnyes.com/twstock/financial4.aspx')
+        self.fetcher.go_to(stock_sheet1.url)
         eps_years = self.get_years(
-            '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option')
+            stock_sheet1.years)
         previous_eps_table_content = ''
         for year in eps_years:
             self.fetcher.find_element(
-                '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option[text()="'
+                stock_sheet1.years + '[text()="'
                 + year + '"]').click()
             # 因為當年度的EPS表格是以AJAX載入,所以要反覆取得跟前次表格內容比對以判斷載入是否完成
             current_eps_table_content = self.get_table_content(
-                '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
+                stock_sheet1.table)
             while current_eps_table_content == previous_eps_table_content:  # 重新執行直到取得當年度的資料
                 time.sleep(0.2)
                 current_eps_table_content = self.get_table_content(
-                    '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
+                    stock_sheet1.table)
             stock_sheet.append(
                 self.get_records(
                     year,
-                    '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]//tr[not(@align)]'
+                    stock_sheet1.table + '//tr'
                 ))
             previous_eps_table_content = self.get_table_content(
-                '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]')
+                stock_sheet1.table)
         return stock_sheet
