@@ -1,9 +1,7 @@
 import webpage_fetcher
-from lxml import etree
-
 
 if __name__ == '__main__':
-    # fetcher = webpage_fetcher.WebpageFetcher()
+    fetcher = webpage_fetcher.WebpageFetcher()
     # path = fetcher.download_file('http://doc.twse.com.tw/pdf/201801_1101_AI1_20181108_084034.pdf')
     # xml = fetcher.get_xml_from_pdf('D:\\Temp\\32.pdf')
     # tree = etree.fromstring(xml)
