@@ -11,12 +11,11 @@
 			"--max-line-length=200"
 		],
 		"cSpell.words": [
-			"bilevel",
 			"etree",
+			"htmltb",
 			"khtml",
 			"lxml",
 			"prefs",
-			"pytesseract",
 			"setuid",
 			"xpath"
 		]

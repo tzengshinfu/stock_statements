@@ -6,109 +6,115 @@ from lxml import etree
 class TaiwanStock():
     fetcher = webpage_fetcher.WebpageFetcher()
 
-    def get_stock_financial_statements(self):
+    def get_financial_statements(self):
         # stock_codes = self.get_stock_codes()
         # stock_basic = self.get_stock_basic('1110')
         # print(stock_basic)
 
-        stock_balance_sheet = self.get_stock_balance_sheet()
-        print(stock_balance_sheet)
+        balance_sheet = self.get_balance_sheet()
+        print(balance_sheet)
         # print(stock_eps)
         self.fetcher.exit()
 
-    def get_stock_codes(self):
+    def get_codes(self):
         """取得台股上巿股票列表"""
-        stock_codes = []
+        codes = []
         response = self.fetcher.get_response(
             'http://www.twse.com.tw/zh/stockSearch/stockSearch', 'get')
         tree = etree.HTML(response.text)
         codes = tree.xpath('//table[@class="grid"]//a/text()')
         for code in codes:
-            stock_codes.append([code[0:4], code[4:]])
-        return stock_codes
+            codes.append([code[0:4], code[4:]])
+        return codes
 
-    def get_stock_basic(self, stock_id):
+    # TODO https://stackoverflow.com/questions/25964194/iterate-through-all-the-rows-in-a-table-using-python-lxml-xpath/26014263#26014263
+    def get_basic(self, stock_id):
         """取得台股上巿股票基本資料"""
-        stock_basic = []
+        basic = []
         response = self.fetcher.get_response(
             'http://mops.twse.com.tw/mops/web/t05st03',
             'post',
             data='firstin=1&co_id=' + stock_id)
-        tree = etree.HTML(response.text)
-        establishment_date = tree.xpath(
-            '//table[@class="hasBorder"]//tr[position()=8]/td[@class="lColor" and position()=1]'
-        )
-        capital_amount = tree.xpath(
-            '//table[@class="hasBorder"]//tr[position()=9]/td[@class="lColor" and position()=1]'
-        )
-        industry = tree.xpath(
-            '//table[@class="hasBorder"]//tr[position()=1]/td[@class="lColor" and position()=2]'
-        )
-        stock_basic.append(stock_id)
-        stock_basic.append(industry[0].text.strip())
-        stock_basic.append(establishment_date[0].text.strip())
-        stock_basic.append(capital_amount[0].text.strip().replace('元',
-                                                                  '').replace(
-                                                                      ',', ''))
-        return stock_basic
+        html = etree.HTML(response.text)
+        rows_xpath = etree.XPath('//table[@class="hasBorder"]//tr')
+        title_xpath = etree.XPath('th[1]/text()')
+        value_xpath = etree.XPath('td[1]/text()')
+        for row in rows_xpath(html):
+            pass
+            # basic.append(stock_id)
+            # basic.append(industry[0].text.strip())
+            # basic.append(establishment_date[0].text.strip())
+            # basic.append(capital_amount[0].text.strip().replace('元',
+            #                                                        '').replace(
+            #                                                            ',', ''))
+            # establishment_date = tree.xpath(
+            #     '//table[@class="hasBorder"]//tr[position()=8]/td[@class="lColor" and position()=1]'
+            # )
+            # capital_amount = tree.xpath(
+            #     '//table[@class="hasBorder"]//tr[position()=9]/td[@class="lColor" and position()=1]'
+            # )
+            # industry = tree.xpath(
+            #     '//table[@class="hasBorder"]//tr[position()=1]/td[@class="lColor" and position()=2]'
+            # )
 
-    def get_stock_eps(self):
+        return basic
+
+    def get_eps(self):
         url = 'https://www.cnyes.com/twstock/financial4.aspx'
         year = '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option'
         table = '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]'
-        stock_eps = self.get_stock_table(url, year, table)
-        return stock_eps
+        eps = self.get_table(url, year, table)
+        return eps
 
-    def get_stock_balance_sheet(self):
-        url = 'https://www.cnyes.com/twstock/financial4.aspx'
-        year = '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option'
-        table = '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]'
-        stock_balance_sheet = self.get_stock_table(url, year, table)
-        return stock_balance_sheet
+    def get_balance_sheet(self):
+        url = 'http://www.cnyes.com/twstock/bs/1101.htm'
+        year = '//select[@id="ctl00_ContentPlaceHolder1_DropDownList1"]/option'
+        table = '//table[@id="ctl00_ContentPlaceHolder1_htmltb1"]'
+        balance_sheet = self.get_table(url, year, table)
+        return balance_sheet
 
-    def get_stock_table(self, stock_sheet1):
-        def get_table_content(self, element_xpath):
+    def get_table(self, url, years_xpath, table_xpath):
+        def get_contents(self, table_xpath):
             """取得表格內容"""
-            table_content = self.fetcher.find_element(element_xpath).text
-            return table_content
+            contents = self.fetcher.find_element(table_xpath).text
+            return contents
 
-        def get_years(self, element_xpath):
+        def get_years(self, years_xpath):
             """取得年度"""
             years = []
-            year_tags = self.fetcher.find_elements(element_xpath)
+            year_tags = self.fetcher.find_elements(years_xpath)
             for tag in year_tags:
                 years.append(tag.text)
             return years
 
-        def get_records(self, year, element_xpath):
+        def get_records(self, year, rows_xpath):
             """取得資料"""
             records = []
-            eps_records = self.fetcher.find_elements(element_xpath)
-            for record in eps_records:
-                eps = []
-                eps.append(year)
-                eps_fields = record.find_elements_by_tag_name('td')
-                for field in eps_fields:
-                    eps.append(field.text)
-                records.append(eps)
+            rows = self.fetcher.find_elements(rows_xpath)
+            for row in rows:
+                record = []
+                record.append(year)
+                fields = row.find_elements_by_tag_name('td')
+                for field in fields:
+                    record.append(field.text)
+                records.append(record)
             return records
 
-        stock_table = []
-        self.fetcher.go_to(stock_sheet1.url)
-        eps_years = self.get_years(stock_sheet1.years)
-        previous_eps_table_content = ''
-        for year in eps_years:
-            self.fetcher.find_element(stock_sheet1.years + '[text()="' + year +
+        table = []
+        self.fetcher.go_to(url)
+        years = self.get_years(years_xpath)
+        previous_contents = ''
+        for year in years:
+            self.fetcher.find_element(years_xpath + '[text()="' + year +
                                       '"]').click()
-            # 因為當年度的EPS表格是以AJAX載入,所以要反覆取得跟前次表格內容比對以判斷載入是否完成
-            current_eps_table_content = self.get_table_content(
-                stock_sheet1.table)
-            while current_eps_table_content == previous_eps_table_content:  # 重新執行直到取得當年度的資料
+            # 因為當年度的表格是以AJAX載入,所以要反覆取得跟前次表格內容比對以判斷載入是否完成
+            current_contents = get_contents(
+                table_xpath)
+            while current_contents == previous_contents:  # 重新執行直到取得當年度的資料
                 time.sleep(0.2)
-                current_eps_table_content = self.get_table_content(
-                    stock_sheet1.table)
-            stock_table.append(
-                self.get_records(year, stock_sheet1.table + '//tr'))
-            previous_eps_table_content = self.get_table_content(
-                stock_sheet1.table)
-        return stock_table
+                current_contents = get_contents(
+                    table_xpath)
+            records = self.get_records(year, table_xpath + '//tr')
+            table.append(records)
+            previous_contents = get_contents(table_xpath)
+        return table
