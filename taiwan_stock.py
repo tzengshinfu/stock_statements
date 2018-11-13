@@ -7,13 +7,7 @@ class TaiwanStock():
     fetcher = webpage_fetcher.WebpageFetcher()
 
     def get_financial_statements(self):
-        # stock_codes = self.get_stock_codes()
-        # stock_basic = self.get_stock_basic('1110')
-        # print(stock_basic)
-
-        balance_sheet = self.get_balance_sheet()
-        print(balance_sheet)
-        # print(stock_eps)
+        # do something
         self.fetcher.exit()
 
     def get_codes(self):
@@ -27,8 +21,8 @@ class TaiwanStock():
             codes.append([code[0:4], code[4:]])
         return codes
 
-    # TODO https://stackoverflow.com/questions/25964194/iterate-through-all-the-rows-in-a-table-using-python-lxml-xpath/26014263#26014263
-    def get_basic(self, stock_id):
+    # TODO 資料整理
+    def get_basics(self, stock_id):
         """取得台股上巿股票基本資料"""
         basic = []
         response = self.fetcher.get_response(
@@ -37,26 +31,19 @@ class TaiwanStock():
             data='firstin=1&co_id=' + stock_id)
         html = etree.HTML(response.text)
         rows_xpath = etree.XPath('//table[@class="hasBorder"]//tr')
-        title_xpath = etree.XPath('th[1]/text()')
-        value_xpath = etree.XPath('td[1]/text()')
+        head1_xpath = etree.XPath('th[1]/text()')
+        body1_xpath = etree.XPath('td[1]/text()')
+        head2_xpath = etree.XPath('th[2]/text()')
+        body2_xpath = etree.XPath('td[2]/text()')
         for row in rows_xpath(html):
-            pass
-            # basic.append(stock_id)
-            # basic.append(industry[0].text.strip())
-            # basic.append(establishment_date[0].text.strip())
-            # basic.append(capital_amount[0].text.strip().replace('元',
-            #                                                        '').replace(
-            #                                                            ',', ''))
-            # establishment_date = tree.xpath(
-            #     '//table[@class="hasBorder"]//tr[position()=8]/td[@class="lColor" and position()=1]'
-            # )
-            # capital_amount = tree.xpath(
-            #     '//table[@class="hasBorder"]//tr[position()=9]/td[@class="lColor" and position()=1]'
-            # )
-            # industry = tree.xpath(
-            #     '//table[@class="hasBorder"]//tr[position()=1]/td[@class="lColor" and position()=2]'
-            # )
-
+            head1 = head1_xpath(row)
+            body1 = body1_xpath(row)
+            basic.append(head1)
+            basic.append(body1)
+            head2 = head2_xpath(row)
+            body2 = body2_xpath(row)
+            basic.append(head2)
+            basic.append(body2)
         return basic
 
     def get_eps(self):
