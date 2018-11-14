@@ -21,7 +21,6 @@ class TaiwanStock():
             codes.append([code[0:4], code[4:]])
         return codes
 
-    # TODO 資料整理
     def get_basics(self, stock_id):
         """取得台股上巿股票基本資料"""
         basic = []
@@ -31,33 +30,46 @@ class TaiwanStock():
             data='firstin=1&co_id=' + stock_id)
         html = etree.HTML(response.text)
         rows_xpath = etree.XPath('//table[@class="hasBorder"]//tr')
-        head1_xpath = etree.XPath('th[1]/text()')
-        body1_xpath = etree.XPath('td[1]/text()')
-        head2_xpath = etree.XPath('th[2]/text()')
-        body2_xpath = etree.XPath('td[2]/text()')
+        dic = {}
+        title = ''
         for row in rows_xpath(html):
-            head1 = head1_xpath(row)
-            body1 = body1_xpath(row)
-            basic.append(head1)
-            basic.append(body1)
-            head2 = head2_xpath(row)
-            body2 = body2_xpath(row)
-            basic.append(head2)
-            basic.append(body2)
+            if (row[0].text.strip() == '本公司'):
+                dic[row[2].text.strip()] = row[1].text.strip()
+                dic[row[5].text.strip()] = row[4].text.strip()
+            if (row[0].text.strip() == '本公司採'):
+                dic['會計年度月制(現)'] = row[1].text.strip()
+            if (row[0].text.strip() == '本公司於'):
+                dic['會計年度月制(前)'] = row[3].text.strip()
+                dic['會計年度月制轉換'] = row[1].text.strip()
+            if (row[0].text.strip() == '編製財務報告類型'):
+                report_type = row[1].text.strip()
+                dic[row[0].text.strip()] = report_type[1:3] if report_type[
+                    0] == '●' else report_type[4:6]
+            else:
+                for index in range(len(row)):
+                    field = row[index]
+                    if (index % 2 == 0):
+                        if (field.tag == 'th'):
+                            title = field.text.strip()
+                            dic[title] = ''
+                    if (index % 2 == 1):
+                        if (field.tag == 'td'):
+                            dic[title] = field.text.strip()
         return basic
 
+    # TODO 待測試
     def get_eps(self):
         url = 'https://www.cnyes.com/twstock/financial4.aspx'
-        year = '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option'
-        table = '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]'
-        eps = self.get_table(url, year, table)
+        years_xpath = '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option'
+        table_xpath = '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]'
+        eps = self.get_table(url, years_xpath, table_xpath)
         return eps
 
     def get_balance_sheet(self):
         url = 'http://www.cnyes.com/twstock/bs/1101.htm'
-        year = '//select[@id="ctl00_ContentPlaceHolder1_DropDownList1"]/option'
-        table = '//table[@id="ctl00_ContentPlaceHolder1_htmltb1"]'
-        balance_sheet = self.get_table(url, year, table)
+        years_xpath = '//select[@id="ctl00_ContentPlaceHolder1_DropDownList1"]/option'
+        table_xpath = '//table[@id="ctl00_ContentPlaceHolder1_htmltb1"]'
+        balance_sheet = self.get_table(url, years_xpath, table_xpath)
         return balance_sheet
 
     def get_table(self, url, years_xpath, table_xpath):
@@ -89,19 +101,17 @@ class TaiwanStock():
 
         table = []
         self.fetcher.go_to(url)
-        years = self.get_years(years_xpath)
+        years = get_years(self, years_xpath)
         previous_contents = ''
         for year in years:
             self.fetcher.find_element(years_xpath + '[text()="' + year +
                                       '"]').click()
             # 因為當年度的表格是以AJAX載入,所以要反覆取得跟前次表格內容比對以判斷載入是否完成
-            current_contents = get_contents(
-                table_xpath)
+            current_contents = get_contents(self, table_xpath)
             while current_contents == previous_contents:  # 重新執行直到取得當年度的資料
                 time.sleep(0.2)
-                current_contents = get_contents(
-                    table_xpath)
-            records = self.get_records(year, table_xpath + '//tr')
+                current_contents = get_contents(self, table_xpath)
+            records = get_records(self, year, table_xpath + '//tr')
             table.append(records)
-            previous_contents = get_contents(table_xpath)
+            previous_contents = get_contents(self, table_xpath)
         return table
