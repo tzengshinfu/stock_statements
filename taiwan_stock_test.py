@@ -26,7 +26,7 @@ class TaiwanStockTest(unittest.TestCase):
         codes = self.stock.get_codes()
         self.assertNotEqual(codes, None)
 
-    def test_get_basics_1101(self):
+    def test_get_basicinfo_1101(self):
         basics = self.stock.get_basicinfo('1101')
         self.assertNotEqual(basics, None)
 
@@ -43,6 +43,6 @@ class TaiwanStockTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    tests = ['test_get_eps']
+    tests = ['test_get_basicinfo_1101']
     suite = unittest.TestSuite(map(TaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
