@@ -18,7 +18,7 @@ class WebpageFetcher():
         self.main_window = None
         self.sub_window = None
 
-    # TODO 設定flag:https://yaruzou.net/chrome-acceleration-flags 及chrome_options
+    # TODO 設定flag:chrome_options
     def initial_browser(self):
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
@@ -39,6 +39,7 @@ class WebpageFetcher():
         options.add_argument('--disk-cache-dir="' + self.tempdir_path + '"')
         options.add_argument('--download-whole-document')
         options.add_argument('--deterministic-fetch')
+        options.add_argument('--user-data-dir="' + self.tempdir_path + '"')
         prefs = {
             'profile.managed_default_content_settings.images': 2,
             'profile.managed_default_content_settings.sound': 2,
