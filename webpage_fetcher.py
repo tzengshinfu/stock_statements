@@ -9,8 +9,8 @@ import lazy_object_proxy
 
 
 class WebpageFetcher():
-    tempfile_path = tempfile.gettempdir()
-    script_path = '\\'.join(sys.executable.split('\\')[0:-1]) + '\\Scripts'
+    tempdir_path = tempfile.gettempdir()
+    scripts_path = '\\'.join(sys.executable.split('\\')[0:-1]) + '\\Scripts'
 
     def __init__(self):
         self.browser = lazy_object_proxy.Proxy(self.initial_browser)
@@ -35,7 +35,7 @@ class WebpageFetcher():
         options.add_argument('--allow-insecure-localhost')
         options.add_argument('--no-sandbox')
         options.add_argument('--no-referrers')
-        options.add_argument('--disk-cache-dir="' + self.tempfile_path + '"')
+        options.add_argument('--disk-cache-dir="' + self.tempdir_path + '"')
         options.add_argument('--download-whole-document')
         options.add_argument('--deterministic-fetch')
         options.add_argument('--log-level=3')
@@ -43,7 +43,7 @@ class WebpageFetcher():
             'profile.managed_default_content_settings.images': 2,
             'profile.managed_default_content_settings.sound': 2,
             'profile.managed_default_content_settings.flash_data': 2,
-            'download.default_directory': self.tempfile_path,
+            'download.default_directory': self.tempdir_path,
             'download.prompt_for_download': False,
             'download.directory_upgrade': True,
         }
@@ -73,14 +73,14 @@ class WebpageFetcher():
         self.browser.switch_to.window(window)
 
     def find_element(self, element_xpath):
-        item = self.wait.until(
+        element = self.wait.until(
             EC.presence_of_element_located((By.XPATH, element_xpath)))
-        return item
+        return element
 
-    def find_elements(self, element_xpath):
-        item = self.wait.until(
-            EC.presence_of_all_elements_located((By.XPATH, element_xpath)))
-        return item
+    def find_elements(self, elements_xpath):
+        elements = self.wait.until(
+            EC.presence_of_all_elements_located((By.XPATH, elements_xpath)))
+        return elements
 
     def switch_to_frame(self, element_xpath):
         self.wait.until(
@@ -88,7 +88,7 @@ class WebpageFetcher():
                                                        element_xpath)))
         return self
 
-    def store_window_position(self):
+    def store_windows_position(self):
         """儲存父子視窗定位以跳轉操作"""
         while True:
             if len(self.browser.window_handles) == 2:
@@ -96,7 +96,16 @@ class WebpageFetcher():
                 self.sub_window = self.browser.window_handles[1]
                 break
 
-    def get_response(self, url, method: 'get/post/download', data=None):
+    def get_response(self, url, method, data=None):
+        """取得瀏覽器回應
+
+        Arguments:
+            url {str} -- 網址
+            method {str} -- get/post/download
+
+        Keyword Arguments:
+            data {str} -- 附加資料 (default: {None})
+        """
         def get_browser_headers():
             """取得瀏覽器Request Header"""
             browser_headers = {
@@ -117,7 +126,7 @@ class WebpageFetcher():
         return response
 
     def download_file(self, url):
-        file_path = self.tempfile_path + '\\' + url.split('/')[-1]
+        file_path = self.tempdir_path + '\\' + url.split('/')[-1]
         response = self.get_response(url, 'download')
         with open(file_path, 'wb') as stream:
             for chunk in response.iter_content(chunk_size=1024):

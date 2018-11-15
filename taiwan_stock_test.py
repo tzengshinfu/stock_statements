@@ -27,11 +27,14 @@ class TaiwanStockTest(unittest.TestCase):
         self.assertNotEqual(codes, None)
 
     def test_get_basics_1101(self):
-        basics = self.stock.get_basics('1101')
+        basics = self.stock.get_basicinfo('1101')
         self.assertNotEqual(basics, None)
 
     def test_get_eps(self):
-        eps = self.stock.get_eps()
+        url = 'https://www.cnyes.com/twstock/financial4.aspx'
+        years = ['2018Q3', '2018Q2']
+        table_xpath = '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]'
+        eps = self.stock.get_table(url, years, table_xpath)
         self.assertNotEqual(eps, None)
 
     def test_get_balance_sheet(self):

@@ -7,11 +7,11 @@ class TaiwanStock():
     fetcher = webpage_fetcher.WebpageFetcher()
 
     def get_financial_statements(self):
-        # do something
+        # TODO do something
         self.fetcher.exit()
 
     def get_codes(self):
-        """取得台股上巿股票列表"""
+        """取得台股上巿股票代號/名稱列表"""
         codes = []
         response = self.fetcher.get_response(
             'http://www.twse.com.tw/zh/stockSearch/stockSearch', 'get')
@@ -21,7 +21,7 @@ class TaiwanStock():
             codes.append([code[0:4], code[4:]])
         return codes
 
-    def get_basics(self, stock_id):
+    def get_basicinfo(self, stock_id):
         """取得台股上巿股票基本資料"""
         basic = []
         response = self.fetcher.get_response(
@@ -57,35 +57,43 @@ class TaiwanStock():
                             dic[title] = field.text.strip()
         return basic
 
-    # TODO 待測試
     def get_eps(self):
         url = 'https://www.cnyes.com/twstock/financial4.aspx'
-        years_xpath = '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option'
+        years = self.get_years('//select[@id="ctl00_ContentPlaceHolder1_D3"]/option')
         table_xpath = '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]'
-        eps = self.get_table(url, years_xpath, table_xpath)
+        eps = self.get_table(url, years, table_xpath)
         return eps
 
     def get_balance_sheet(self):
         url = 'http://www.cnyes.com/twstock/bs/1101.htm'
-        years_xpath = '//select[@id="ctl00_ContentPlaceHolder1_DropDownList1"]/option'
+        years = self.get_years('//select[@id="ctl00_ContentPlaceHolder1_DropDownList1"]/option')
         table_xpath = '//table[@id="ctl00_ContentPlaceHolder1_htmltb1"]'
-        balance_sheet = self.get_table(url, years_xpath, table_xpath)
+        balance_sheet = self.get_table(url, years, table_xpath)
         return balance_sheet
 
-    def get_table(self, url, years_xpath, table_xpath):
-        def get_contents(self, table_xpath):
-            """取得表格內容"""
-            contents = self.fetcher.find_element(table_xpath).text
-            return contents
+    def get_years(self, years_xpath):
+        """取得年度
 
-        def get_years(self, years_xpath):
-            """取得年度"""
-            years = []
-            year_tags = self.fetcher.find_elements(years_xpath)
-            for tag in year_tags:
-                years.append(tag.text)
-            return years
+        Arguments:
+            years_xpath {str} -- 年度下拉清單的XPATH
 
+        Returns:
+            {list} -- 年度清單
+        """
+        years = []
+        year_tags = self.fetcher.find_elements(years_xpath)
+        for tag in year_tags:
+            years.append(tag.text)
+        return years
+
+    def get_table(self, url, years, table_xpath):
+        """取得表格內容
+
+        Arguments:
+            url {str} -- 來源網址
+            years {list} -- 年度清單, 如['2018Q3', '2018Q2']
+            table_xpath {str} -- 表格的XPATH
+        """
         def get_records(self, year, rows_xpath):
             """取得資料"""
             records = []
@@ -101,17 +109,16 @@ class TaiwanStock():
 
         table = []
         self.fetcher.go_to(url)
-        years = get_years(self, years_xpath)
         previous_contents = ''
         for year in years:
-            self.fetcher.find_element(years_xpath + '[text()="' + year +
+            self.fetcher.find_element(years + '[text()="' + year +
                                       '"]').click()
             # 因為當年度的表格是以AJAX載入,所以要反覆取得跟前次表格內容比對以判斷載入是否完成
-            current_contents = get_contents(self, table_xpath)
+            current_contents = self.fetcher.find_element(table_xpath).text
             while current_contents == previous_contents:  # 重新執行直到取得當年度的資料
                 time.sleep(0.2)
-                current_contents = get_contents(self, table_xpath)
+                current_contents = self.fetcher.find_element(table_xpath).text
             records = get_records(self, year, table_xpath + '//tr')
             table.append(records)
-            previous_contents = get_contents(self, table_xpath)
+            previous_contents = self.fetcher.find_element(table_xpath).text
         return table
