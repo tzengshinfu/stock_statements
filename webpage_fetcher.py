@@ -36,12 +36,12 @@ class WebpageFetcher():
         options.add_argument('--allow-insecure-localhost')
         options.add_argument('--no-sandbox')
         options.add_argument('--no-referrers')
-        options.add_argument('--disk-cache-dir="' + self.tempdir_path + '"')
+        options.add_argument('--disk-cache-dir="' + self.tempdir_path + '\\Headless_cache"')
         options.add_argument('--download-whole-document')
         options.add_argument('--deterministic-fetch')
         options.add_argument('--mute-audio')
         prefs = {
-            'download.default_directory': self.tempdir_path,
+            'download.default_directory': self.tempdir_path + '\\Headless_downloads',
             'download.prompt_for_download': False,
             'download.directory_upgrade': True,
             'browser.enable_spellchecking': False,

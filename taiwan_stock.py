@@ -11,7 +11,11 @@ class TaiwanStock():
         self.fetcher.exit()
 
     def get_codes(self):
-        """取得台股上巿股票代號/名稱列表"""
+        """取得台股上巿股票代號/名稱列表
+
+        Returns:
+            {list} -- 股票代號/名稱列表
+        """
         codes = []
         response = self.fetcher.get_response(
             'http://www.twse.com.tw/zh/stockSearch/stockSearch', 'get')
@@ -22,28 +26,34 @@ class TaiwanStock():
         return codes
 
     def get_basicinfo(self, stock_id):
-        """取得台股上巿股票基本資料"""
-        basic = []
+        """取得台股上巿股票基本資料
+
+        Arguments:
+            stock_id {str} -- 股票代碼
+
+        Returns:
+            {dict} -- 基本資料
+        """
+        basic = {}
         response = self.fetcher.get_response(
             'http://mops.twse.com.tw/mops/web/t05st03',
             'post',
             data='firstin=1&co_id=' + stock_id)
         html = etree.HTML(response.text)
         rows_xpath = etree.XPath('//table[@class="hasBorder"]//tr')
-        dic = {}
         title = ''
         for row in rows_xpath(html):
             if (row[0].text.strip() == '本公司'):
-                dic[row[2].text.strip()] = row[1].text.strip()
-                dic[row[5].text.strip()] = row[4].text.strip()
+                basic[row[2].text.strip()] = row[1].text.strip()
+                basic[row[5].text.strip()] = row[4].text.strip()
             if (row[0].text.strip() == '本公司採'):
-                dic['會計年度月制(現)'] = row[1].text.strip()
+                basic['會計年度月制(現)'] = row[1].text.strip()
             if (row[0].text.strip() == '本公司於'):
-                dic['會計年度月制(前)'] = row[3].text.strip()
-                dic['會計年度月制轉換'] = row[1].text.strip()
+                basic['會計年度月制(前)'] = row[3].text.strip()
+                basic['會計年度月制轉換'] = row[1].text.strip()
             if (row[0].text.strip() == '編製財務報告類型'):
                 report_type = row[1].text.strip()
-                dic[row[0].text.strip()] = report_type[1:3] if report_type[
+                basic[row[0].text.strip()] = report_type[1:3] if report_type[
                     0] == '●' else report_type[4:6]
             else:
                 for index in range(len(row)):
@@ -51,10 +61,10 @@ class TaiwanStock():
                     if (index % 2 == 0):
                         if (field.tag == 'th'):
                             title = field.text.strip()
-                            dic[title] = ''
+                            basic[title] = ''
                     if (index % 2 == 1):
                         if (field.tag == 'td'):
-                            dic[title] = field.text.strip()
+                            basic[title] = field.text.strip()
         return basic
 
     def get_eps(self):
@@ -93,6 +103,9 @@ class TaiwanStock():
             url {str} -- 來源網址
             years {list} -- 年度清單, 如['2018Q3', '2018Q2']
             table_xpath {str} -- 表格的XPATH
+
+        Returns:
+            {list} -- 表格內容
         """
         def get_records(self, year, rows_xpath):
             """取得資料"""
