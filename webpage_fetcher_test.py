@@ -22,6 +22,10 @@ class WebpageFetcherTest(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_initial_browser(self):
+        self.fetcher.initial_browser()
+        self.fetcher.go_to('http://www.google.com')
+
     def test_download_file(self):
         pdf_path = self.fetcher.download_file(
             'http://doc.twse.com.tw/pdf/201801_1101_AI1_20181108_084034.pdf')
@@ -30,6 +34,6 @@ class WebpageFetcherTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    tests = ['test_download_file']
+    tests = ['test_initial_browser']
     suite = unittest.TestSuite(map(WebpageFetcherTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

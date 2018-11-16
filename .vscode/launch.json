@@ -5,14 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: stock_comparer.py (Integrated Terminal)",
+            "name": "Python: Run stock_comparer.py (Integrated Terminal)",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}\\stock_comparer.py",
             "console": "integratedTerminal"
         },
         {
-            "name": "Python: taiwan_stock_test.py (Integrated Terminal)",
+            "name": "Python: Run taiwan_stock_test.py (Integrated Terminal)",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}\\taiwan_stock_test.py",
@@ -23,6 +23,13 @@
             "type": "python",
             "request": "launch",
             "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Test current File (Integrated Terminal)",
+            "type": "python",
+            "request": "launch",
+            "program": "${fileDirname}\\${fileBasenameNoExtension}_test.py",
             "console": "integratedTerminal"
         },
         {
