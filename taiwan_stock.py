@@ -56,7 +56,7 @@ class TaiwanStock():
                 basic[row[0].text.strip()] = report_type[1:3] if report_type[
                     0] == '●' else report_type[4:6]
             else:
-                # TODO 改用enumerate
+                # TODO 改用enumerate, start=1
                 for index in range(len(row)):
                     field = row[index]
                     if (index % 2 == 0):
@@ -126,7 +126,7 @@ class TaiwanStock():
         previous_contents = ''
         years = get_years(option_xpath)
         # TODO 修正
-        for index, year in enumerate(years):
+        for index, year in enumerate(years, start=1):
             self.fetcher.find_element(option_xpath + '[text()="' + year +
                                       '"]').click()
             # 因為當年度的表格是以AJAX載入,所以要反覆取得跟前次表格內容比對以判斷載入是否完成
