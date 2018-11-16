@@ -56,6 +56,7 @@ class TaiwanStock():
                 basic[row[0].text.strip()] = report_type[1:3] if report_type[
                     0] == '●' else report_type[4:6]
             else:
+                # TODO 改用enumerate
                 for index in range(len(row)):
                     field = row[index]
                     if (index % 2 == 0):
@@ -81,32 +82,32 @@ class TaiwanStock():
         balance_sheet = self.get_table(url, years, table_xpath)
         return balance_sheet
 
-    def get_years(self, years_xpath):
-        """取得年度
-
-        Arguments:
-            years_xpath {str} -- 年度下拉清單的XPATH
-
-        Returns:
-            {list} -- 年度清單
-        """
-        years = []
-        year_tags = self.fetcher.find_elements(years_xpath)
-        for tag in year_tags:
-            years.append(tag.text)
-        return years
-
-    def get_table(self, url, years, table_xpath):
+    def get_table(self, url, option_xpath, top_n_count, table_xpath):
         """取得表格內容
 
         Arguments:
             url {str} -- 來源網址
-            years {list} -- 年度清單, 如['2018Q3', '2018Q2']
+            option_xpath {str} -- 年度下拉清單的XPATH
+            top_n_count {int} -- 取前n個選項, 輸入0=全取
             table_xpath {str} -- 表格的XPATH
 
         Returns:
             {list} -- 表格內容
         """
+        def get_years(self, years_xpath):
+            """取得年度
+
+            Arguments:
+                years_xpath {str} -- 年度下拉清單的XPATH
+
+            Returns:
+                {list} -- 年度清單
+            """
+            years = []
+            year_tags = self.fetcher.find_elements(years_xpath)
+            for tag in year_tags:
+                years.append(tag.text)
+            return years
         def get_records(self, year, rows_xpath):
             """取得資料"""
             records = []
@@ -123,8 +124,10 @@ class TaiwanStock():
         table = []
         self.fetcher.go_to(url)
         previous_contents = ''
-        for year in years:
-            self.fetcher.find_element(years + '[text()="' + year +
+        years = get_years(option_xpath)
+        # TODO 修正
+        for index, year in enumerate(years):
+            self.fetcher.find_element(option_xpath + '[text()="' + year +
                                       '"]').click()
             # 因為當年度的表格是以AJAX載入,所以要反覆取得跟前次表格內容比對以判斷載入是否完成
             current_contents = self.fetcher.find_element(table_xpath).text
