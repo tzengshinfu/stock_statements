@@ -56,14 +56,12 @@ class TaiwanStock():
                 basic[row[0].text.strip()] = report_type[1:3] if report_type[
                     0] == '●' else report_type[4:6]
             else:
-                # TODO 改用enumerate, start=1
-                for index in range(len(row)):
-                    field = row[index]
-                    if (index % 2 == 0):
+                for index, field in enumerate(row, start=1):
+                    if (index % 2 == 1):
                         if (field.tag == 'th'):
                             title = field.text.strip()
                             basic[title] = ''
-                    if (index % 2 == 1):
+                    else:
                         if (field.tag == 'td'):
                             basic[title] = field.text.strip()
         return basic
@@ -108,6 +106,7 @@ class TaiwanStock():
             for tag in year_tags:
                 years.append(tag.text)
             return years
+
         def get_records(self, year, rows_xpath):
             """取得資料"""
             records = []
@@ -125,8 +124,9 @@ class TaiwanStock():
         self.fetcher.go_to(url)
         previous_contents = ''
         years = get_years(option_xpath)
-        # TODO 修正
         for index, year in enumerate(years, start=1):
+            if (index > top_n_count):
+                break
             self.fetcher.find_element(option_xpath + '[text()="' + year +
                                       '"]').click()
             # 因為當年度的表格是以AJAX載入,所以要反覆取得跟前次表格內容比對以判斷載入是否完成
