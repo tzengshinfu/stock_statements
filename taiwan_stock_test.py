@@ -43,6 +43,6 @@ class TaiwanStockTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    tests = ['test_get_eps_2seasons']
+    tests = ['test_get_codes']
     suite = unittest.TestSuite(map(TaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
