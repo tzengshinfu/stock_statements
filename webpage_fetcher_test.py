@@ -24,7 +24,7 @@ class WebpageFetcherTest(unittest.TestCase):
 
     def test_initial_browser(self):
         self.fetcher.initial_browser()
-        self.fetcher.go_to('http://www.google.com')
+        self.fetcher.go_to('https://www.google.com')
 
     def test_download_file(self):
         pdf_path = self.fetcher.download_file(

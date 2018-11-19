@@ -68,16 +68,16 @@ class TaiwanStock():
 
     def get_eps(self):
         url = 'https://www.cnyes.com/twstock/financial4.aspx'
-        years = self.get_years('//select[@id="ctl00_ContentPlaceHolder1_D3"]/option')
+        years_xpath = '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option'
         table_xpath = '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]'
-        eps = self.get_table(url, years, table_xpath)
+        eps = self.get_table(url, years_xpath, 0, table_xpath)
         return eps
 
     def get_balance_sheet(self):
         url = 'http://www.cnyes.com/twstock/bs/1101.htm'
-        years = self.get_years('//select[@id="ctl00_ContentPlaceHolder1_DropDownList1"]/option')
+        years_xpath = '//select[@id="ctl00_ContentPlaceHolder1_DropDownList1"]/option'
         table_xpath = '//table[@id="ctl00_ContentPlaceHolder1_htmltb1"]'
-        balance_sheet = self.get_table(url, years, table_xpath)
+        balance_sheet = self.get_table(url, years_xpath, 0, table_xpath)
         return balance_sheet
 
     def get_table(self, url, option_xpath, top_n_count, table_xpath):
@@ -86,7 +86,7 @@ class TaiwanStock():
         Arguments:
             url {str} -- 來源網址
             option_xpath {str} -- 年度下拉清單的XPATH
-            top_n_count {int} -- 取前n個選項, 輸入0=全取
+            top_n_count {int} -- 年度下拉清單取前n個選項, 輸入0=全取
             table_xpath {str} -- 表格的XPATH
 
         Returns:
@@ -123,7 +123,7 @@ class TaiwanStock():
         table = []
         self.fetcher.go_to(url)
         previous_contents = ''
-        years = get_years(option_xpath)
+        years = get_years(self, option_xpath)
         for index, year in enumerate(years, start=1):
             if (index > top_n_count):
                 break

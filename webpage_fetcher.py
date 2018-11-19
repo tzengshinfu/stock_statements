@@ -28,7 +28,6 @@ class WebpageFetcher():
         options.add_argument('--disable-setuid-sandbox')
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--disable-logging')
-        options.add_argument('--disable-extensions')
         options.add_argument('--disable-web-security')
         options.add_argument('--disable-translate')
         options.add_argument('--disable-infobars')
@@ -39,7 +38,9 @@ class WebpageFetcher():
         options.add_argument('--disk-cache-dir="' + self.tempdir_path + '\\Headless_cache"')
         options.add_argument('--download-whole-document')
         options.add_argument('--deterministic-fetch')
-        options.add_argument('--mute-audio')
+        options.add_argument('--no-first-run')
+        options.add_argument('--test-type')
+        options.add_argument('--hide-scrollbars')
         prefs = {
             'download.default_directory': self.tempdir_path + '\\Headless_downloads',
             'download.prompt_for_download': False,
@@ -50,16 +51,13 @@ class WebpageFetcher():
             'spellcheck.dictionary': '',
             'translate.enabled': False,
             'profile.managed_default_content_settings.cookies': 1,
-            'profile.managed_default_content_settings.geolocation': 2,
-            'profile.managed_default_content_settings.media_stream': 2,
-            'profile.default_content_setting_values.notifications': 2,
             'profile.managed_default_content_settings.javascript': 1,
-            'profile.managed_default_content_settings.flash': 2,
             'profile.managed_default_content_settings.images': 2,
             'profile.managed_default_content_settings.popups': 2,
-            'profile.default_content_setting_values.plugins': 2,
-            'profile.default_content_setting_values.clipboard': 2,
             'profile.default_content_setting_values.payment_handler': 2,
+            'profile.default_content_setting_values.background_sync': 2,
+            'profile.default_content_setting_values.sound': 2,
+            'profile.default_content_setting_values.subresource_filter': 2  # 阻擋廣告
         }
         options.add_experimental_option('prefs', prefs)
         return webdriver.Chrome(

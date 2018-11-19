@@ -30,11 +30,11 @@ class TaiwanStockTest(unittest.TestCase):
         basics = self.stock.get_basicinfo('1101')
         self.assertNotEqual(basics, {})
 
-    def test_get_eps(self):
+    def test_get_eps_2seasons(self):
         url = 'https://www.cnyes.com/twstock/financial4.aspx'
-        years = ['2018Q3', '2018Q2']
+        years_xpath = '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option'
         table_xpath = '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]'
-        eps = self.stock.get_table(url, years, table_xpath)
+        eps = self.stock.get_table(url, years_xpath, 2, table_xpath)
         self.assertNotEqual(eps, [])
 
     def test_get_balance_sheet(self):
@@ -43,6 +43,6 @@ class TaiwanStockTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    tests = ['test_get_codes']
+    tests = ['test_get_eps_2seasons']
     suite = unittest.TestSuite(map(TaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
