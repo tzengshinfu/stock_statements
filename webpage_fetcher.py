@@ -22,7 +22,11 @@ class WebpageFetcher():
         options = webdriver.ChromeOptions()
         options.add_argument('--headless')
         options.add_argument('--start-maximized')
+        options.add_argument('--hide-scrollbars')
         options.add_argument('--incognito')
+        options.add_argument('--disk-cache-dir="' + self.tempdir_path + '\\Headless_cache"')
+        options.add_argument('--download-whole-document')
+        options.add_argument('--deterministic-fetch')
         options.add_argument('--ignore-certificate-errors')
         options.add_argument('--ignore-ssl-errors')
         options.add_argument('--disable-setuid-sandbox')
@@ -35,12 +39,8 @@ class WebpageFetcher():
         options.add_argument('--allow-insecure-localhost')
         options.add_argument('--no-sandbox')
         options.add_argument('--no-referrers')
-        options.add_argument('--disk-cache-dir="' + self.tempdir_path + '\\Headless_cache"')
-        options.add_argument('--download-whole-document')
-        options.add_argument('--deterministic-fetch')
         options.add_argument('--no-first-run')
         options.add_argument('--test-type')
-        options.add_argument('--hide-scrollbars')
         prefs = {
             'download.default_directory': self.tempdir_path + '\\Headless_downloads',
             'download.prompt_for_download': False,
