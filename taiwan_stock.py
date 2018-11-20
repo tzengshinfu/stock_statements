@@ -21,6 +21,7 @@ class TaiwanStock():
             'http://www.twse.com.tw/zh/stockSearch/stockSearch', 'get')
         tree = etree.HTML(response.text)
         codes = tree.xpath('//table[@class="grid"]//a/text()')
+        # TODO 改成寫入檔案
         for code in codes:
             codes.append([code[0:4], code[4:]])
         return codes

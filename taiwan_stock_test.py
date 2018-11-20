@@ -37,12 +37,15 @@ class TaiwanStockTest(unittest.TestCase):
         eps = self.stock.get_table(url, years_xpath, 2, table_xpath)
         self.assertNotEqual(eps, [])
 
-    def test_get_balance_sheet(self):
-        balance_sheet = self.stock.get_balance_sheet()
+    def test_get_balance_sheet_2seasons(self):
+        url = 'http://www.cnyes.com/twstock/bs/1101.htm'
+        years_xpath = '//select[@id="ctl00_ContentPlaceHolder1_DropDownList1"]/option'
+        table_xpath = '//table[@id="ctl00_ContentPlaceHolder1_htmltb1"]'
+        balance_sheet = self.stock.get_table(url, years_xpath, 2, table_xpath)
         self.assertNotEqual(balance_sheet, [])
 
 
 if __name__ == '__main__':
-    tests = ['test_get_codes']
+    tests = ['test_get_balance_sheet_2seasons']
     suite = unittest.TestSuite(map(TaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
