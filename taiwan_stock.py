@@ -10,6 +10,7 @@ class TaiwanStock():
         # TODO do something
         self.fetcher.exit()
 
+    # TODO 改寫到excel檔
     def get_codes(self):
         """取得台股上巿股票代號/名稱列表
 
@@ -21,7 +22,6 @@ class TaiwanStock():
             'http://www.twse.com.tw/zh/stockSearch/stockSearch', 'get')
         tree = etree.HTML(response.text)
         codes = tree.xpath('//table[@class="grid"]//a/text()')
-        # TODO 改成寫入檔案
         for code in codes:
             codes.append([code[0:4], code[4:]])
         return codes
@@ -74,6 +74,7 @@ class TaiwanStock():
         eps = self.get_table(url, years_xpath, 0, table_xpath)
         return eps
 
+    # TODO 2018Q2內容檢查
     def get_balance_sheet(self):
         url = 'http://www.cnyes.com/twstock/bs/1101.htm'
         years_xpath = '//select[@id="ctl00_ContentPlaceHolder1_DropDownList1"]/option'
