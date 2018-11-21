@@ -23,11 +23,11 @@ class TaiwanStockTest(unittest.TestCase):
         pass
 
     def test_get_codes(self):
-        codes = self.stock.get_codes()
+        codes = self.stock.get_code_list()
         self.assertNotEqual(codes, [])
 
     def test_get_basicinfo_1101(self):
-        basics = self.stock.get_basicinfo('1101')
+        basics = self.stock.get_basic_info('1101')
         self.assertNotEqual(basics, {})
 
     def test_get_eps_2seasons(self):
@@ -43,6 +43,9 @@ class TaiwanStockTest(unittest.TestCase):
         table_xpath = '//table[@id="ctl00_ContentPlaceHolder1_htmltb1"]'
         balance_sheet = self.stock.get_table(url, years_xpath, 2, table_xpath)
         self.assertNotEqual(balance_sheet, [])
+
+    def test_get_financial_statements(self):
+        self.stock.get_financial_statements()
 
 
 if __name__ == '__main__':

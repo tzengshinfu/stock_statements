@@ -1,32 +1,35 @@
 import webpage_fetcher
 import time
 from lxml import etree
+import excel_handler
 
 
 class TaiwanStock():
     fetcher = webpage_fetcher.WebpageFetcher()
+    handler = excel_handler.ExcelHandler()
 
     def get_financial_statements(self):
-        # TODO do something
-        self.fetcher.exit()
+        code_list = self.get_code_list()
+        self.handler.sheet.range('A1').value = code_list
+        self.handler.save_workbook('C:\\code_list.xlsx')
+        self.handler.exit()
 
-    # TODO 改寫到excel檔
-    def get_codes(self):
+    def get_code_list(self):
         """取得台股上巿股票代號/名稱列表
 
         Returns:
             {list} -- 股票代號/名稱列表
         """
-        codes = []
+        code_list = []
         response = self.fetcher.get_response(
             'http://www.twse.com.tw/zh/stockSearch/stockSearch', 'get')
         tree = etree.HTML(response.text)
         codes = tree.xpath('//table[@class="grid"]//a/text()')
         for code in codes:
-            codes.append([code[0:4], code[4:]])
-        return codes
+            code_list.append([code[0:4], code[4:]])
+        return code_list
 
-    def get_basicinfo(self, stock_id):
+    def get_basic_info(self, stock_id):
         """取得台股上巿股票基本資料
 
         Arguments:
@@ -35,7 +38,7 @@ class TaiwanStock():
         Returns:
             {dict} -- 基本資料
         """
-        basic = {}
+        basic_info = {}
         response = self.fetcher.get_response(
             'http://mops.twse.com.tw/mops/web/t05st03',
             'post',
@@ -45,27 +48,27 @@ class TaiwanStock():
         title = ''
         for row in rows_xpath(html):
             if (row[0].text.strip() == '本公司'):
-                basic[row[2].text.strip()] = row[1].text.strip()
-                basic[row[5].text.strip()] = row[4].text.strip()
+                basic_info[row[2].text.strip()] = row[1].text.strip()
+                basic_info[row[5].text.strip()] = row[4].text.strip()
             if (row[0].text.strip() == '本公司採'):
-                basic['會計年度月制(現)'] = row[1].text.strip()
+                basic_info['會計年度月制(現)'] = row[1].text.strip()
             if (row[0].text.strip() == '本公司於'):
-                basic['會計年度月制(前)'] = row[3].text.strip()
-                basic['會計年度月制轉換'] = row[1].text.strip()
+                basic_info['會計年度月制(前)'] = row[3].text.strip()
+                basic_info['會計年度月制轉換'] = row[1].text.strip()
             if (row[0].text.strip() == '編製財務報告類型'):
                 report_type = row[1].text.strip()
-                basic[row[0].text.strip()] = report_type[1:3] if report_type[
+                basic_info[row[0].text.strip()] = report_type[1:3] if report_type[
                     0] == '●' else report_type[4:6]
             else:
                 for index, field in enumerate(row, start=1):
                     if (index % 2 == 1):
                         if (field.tag == 'th'):
                             title = field.text.strip()
-                            basic[title] = ''
+                            basic_info[title] = ''
                     else:
                         if (field.tag == 'td'):
-                            basic[title] = field.text.strip()
-        return basic
+                            basic_info[title] = field.text.strip()
+        return basic_info
 
     def get_eps(self):
         url = 'https://www.cnyes.com/twstock/financial4.aspx'
