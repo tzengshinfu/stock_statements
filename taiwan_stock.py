@@ -77,7 +77,6 @@ class TaiwanStock():
         eps = self.get_table(url, years_xpath, 0, table_xpath)
         return eps
 
-    # TODO 2018Q2內容檢查
     def get_balance_sheet(self):
         url = 'http://www.cnyes.com/twstock/bs/1101.htm'
         years_xpath = '//select[@id="ctl00_ContentPlaceHolder1_DropDownList1"]/option'
@@ -139,7 +138,7 @@ class TaiwanStock():
             while current_contents == previous_contents:  # 重新執行直到取得當年度的資料
                 time.sleep(0.2)
                 current_contents = self.fetcher.find_element(table_xpath).text
-            records = get_records(self, year, table_xpath + '//tr')
+            records = get_records(self, year, table_xpath + '//tr[not(th)]')
             table.append(records)
             previous_contents = self.fetcher.find_element(table_xpath).text
         return table
