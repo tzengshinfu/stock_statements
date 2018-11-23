@@ -70,21 +70,42 @@ class TaiwanStock():
                             basic_info[title] = field.text.strip()
         return basic_info
 
-    def get_eps(self):
+    def get_eps(self, top_n_count):
         url = 'https://www.cnyes.com/twstock/financial4.aspx'
         years_xpath = '//select[@id="ctl00_ContentPlaceHolder1_D3"]/option'
         table_xpath = '//table[@id="ctl00_ContentPlaceHolder1_GridView1"]'
-        eps = self.get_table(url, years_xpath, 0, table_xpath)
+        eps = self.__get_table(url, years_xpath, top_n_count, table_xpath)
         return eps
 
-    def get_balance_sheet(self):
-        url = 'http://www.cnyes.com/twstock/bs/1101.htm'
+    def get_balance_sheet(self, stock_id, top_n_count):
+        url = 'http://www.cnyes.com/twstock/bs/{0}.htm'.format(stock_id)
         years_xpath = '//select[@id="ctl00_ContentPlaceHolder1_DropDownList1"]/option'
         table_xpath = '//table[@id="ctl00_ContentPlaceHolder1_htmltb1"]'
-        balance_sheet = self.get_table(url, years_xpath, 0, table_xpath)
+        balance_sheet = self.__get_table(url, years_xpath, top_n_count, table_xpath)
         return balance_sheet
 
-    def get_table(self, url, option_xpath, top_n_count, table_xpath):
+    def get_income_sheet(self, stock_id, top_n_count):
+        url = 'http://www.cnyes.com/twstock/incomes/{0}.htm'.format(stock_id)
+        years_xpath = '//select[@id="ctl00_ContentPlaceHolder1_DropDownList1"]/option'
+        table_xpath = '//table[@id="ctl00_ContentPlaceHolder1_htmltb1"]'
+        income_sheet = self.__get_table(url, years_xpath, top_n_count, table_xpath)
+        return income_sheet
+
+    def get_cashflow_sheet(self, stock_id, top_n_count):
+        url = 'http://www.cnyes.com/twstock/Cashflow/{0}.htm'.format(stock_id)
+        years_xpath = '//select[@id="ctl00_ContentPlaceHolder1_DropDownList1"]/option'
+        table_xpath = '//table[@id="ctl00_ContentPlaceHolder1_htmltb1"]'
+        cashflow_sheet = self.__get_table(url, years_xpath, top_n_count, table_xpath)
+        return cashflow_sheet
+
+    def get_equity_sheet(self, stock_id, top_n_count):
+        url = 'http://www.cnyes.com/twstock/proprietary/{0}.htm'.format(stock_id)
+        years_xpath = '//select[@id="ctl00_ContentPlaceHolder1_DropDownList1"]/option'
+        table_xpath = '//table[@id="ctl00_ContentPlaceHolder1_htmltb1"]'
+        equity_sheet = self.__get_table(url, years_xpath, top_n_count, table_xpath)
+        return equity_sheet
+
+    def __get_table(self, url, option_xpath, top_n_count, table_xpath):
         """取得表格內容
 
         Arguments:
