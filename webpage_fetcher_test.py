@@ -32,8 +32,18 @@ class WebpageFetcherTest(unittest.TestCase):
         self.assertEqual(pdf_path,
                          'D:\\Temp\\201801_1101_AI1_20181108_084034.pdf')
 
+    def test_find_elements(self):
+        self.fetcher.request.go_to(
+            'http://mops.twse.com.tw/mops/web/t05st03',
+            'post',
+            data='firstin=1&co_id=' + '1101')
+        trs = self.fetcher.request.find_elements('//table[@class="hasBorder"]//tr')
+        for tr in trs:
+            print(tr.value)
+        pass
+
 
 if __name__ == '__main__':
-    tests = ['test_download_file']
+    tests = ['test_find_elements']
     suite = unittest.TestSuite(map(WebpageFetcherTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
