@@ -70,7 +70,7 @@ class TaiwanStock():
                             basic_info[title] = cell.text.strip()
         return basic_info
 
-    def __get_table(self, url, top_n_count):
+    def get_table(self, url, top_n_count):
         """取得表格內容
 
         Arguments:
@@ -96,6 +96,7 @@ class TaiwanStock():
             return options
 
         self.fetcher.request.go_to('http://mops.twse.com.tw/server-java/t164sb01')
-        year_tags = self.fetcher.request.find_elements()
+        years = self.fetcher.request.find_elements('//select[@id="SYEAR"]//option/@value')
+        seasons = self.fetcher.request.find_elements('//select[@id="SSEASON"]//option/@value')
 
         return None

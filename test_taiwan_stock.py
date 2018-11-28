@@ -2,7 +2,7 @@ import unittest
 import taiwan_stock
 
 
-class TaiwanStockTest(unittest.TestCase):
+class TestTaiwanStock(unittest.TestCase):
     stock = taiwan_stock.TaiwanStock()
 
     def __init__(self, *args, **kwargs):
@@ -30,19 +30,11 @@ class TaiwanStockTest(unittest.TestCase):
         basics = self.stock.get_basic_info('1101')
         self.assertNotEqual(basics, {})
 
-    def test_get_eps_2seasons(self):
-        eps = self.stock.get_eps(2)
-        self.assertNotEqual(eps, [])
-
-    def test_get_balance_sheet_2seasons(self):
-        balance_sheet = self.stock.get_balance_sheet('1101', 2)
-        self.assertNotEqual(balance_sheet, [])
-
-    def test_get_financial_statements(self):
-        self.stock.get_financial_statements()
+    def test_get_table(self):
+        self.stock.get_table('http://mops.twse.com.tw/server-java/t164sb01', 2)
 
 
 if __name__ == '__main__':
-    tests = ['test_get_balance_sheet_2seasons']
-    suite = unittest.TestSuite(map(TaiwanStockTest, tests))
+    tests = ['test_get_table']
+    suite = unittest.TestSuite(map(TestTaiwanStock, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
