@@ -1,5 +1,6 @@
 import webpage_fetcher
 import excel_handler
+import datetime
 
 
 # TODO 財務附註 http://mops.twse.com.tw/server-java/t164sb01
@@ -17,7 +18,7 @@ class TaiwanStock():
         self.handler.save_workbook('C:\\code_list.xlsx')
         self.handler.exit()
 
-    def get_code_list(self):
+    def get_code_list(self) -> list:
         """取得台股上巿股票代號/名稱列表
 
         Returns:
@@ -30,7 +31,7 @@ class TaiwanStock():
             code_list.append([code[0:4], code[4:]])
         return code_list
 
-    def get_basic_info(self, stock_id):
+    def get_basic_info(self, stock_id: str) -> dict:
         """取得台股上巿股票基本資料
 
         Arguments:
@@ -70,21 +71,21 @@ class TaiwanStock():
                             basic_info[title] = cell.text.strip()
         return basic_info
 
-    def get_table(self, url, top_n_count):
+    def get_table(self, stock_id: str, top_n_seasons: int = None) -> list:
         """取得表格內容
 
         Arguments:
-            url {str} -- 來源網址
-            table_xpath {str} -- 表格的XPATH
+            stock_id {str} -- 股票代碼
+            top_n_seasons {int} -- 取得前n季
 
         Returns:
             {list} -- 表格內容
         """
-        def get_options(self, options_xpath):
+        def get_options(self, options_xpath: str) -> list:
             """取得下拉清單內容的list
 
             Arguments:
-                tags_xpath {str} -- 下拉清單的XPATH
+                options_xpath {str} -- 下拉清單的XPATH
 
             Returns:
                 {list} -- 下拉清單內容
@@ -95,8 +96,45 @@ class TaiwanStock():
                 options.append(option_tag.text)
             return options
 
-        self.fetcher.request.go_to('http://mops.twse.com.tw/server-java/t164sb01')
-        years = self.fetcher.request.find_elements('//select[@id="SYEAR"]//option/@value')
-        seasons = self.fetcher.request.find_elements('//select[@id="SSEASON"]//option/@value')
+        def get_seasons(self) -> list:
+            def get_season(self, month) -> dict:
+                mapping = {
+                    '1': '1',
+                    '2': '1',
+                    '3': '1',
+                    '4': '2',
+                    '5': '2',
+                    '6': '2',
+                    '7': '3',
+                    '8': '3',
+                    '9': '3',
+                    '10': '4',
+                    '11': '4',
+                    '12': '4'
+                }
+                return mapping.get(month)
+            self.fetcher.request.go_to('http://mops.twse.com.tw/server-java/t164sb01')
+            years = self.fetcher.request.find_elements('//select[@id="SYEAR"]//option/@value')
+            current_year = str(datetime.datetime.now().year)
+            current_season = get_season(datetime.datetime.now().month)
+            seasons = []
+            for year in reversed(years):
+                for season in reversed(['1', '2', '3', '4']):
+                    if int(year + season) > int(current_year + current_season):
+                        continue
+                    seasons.append([year, season])
+            return seasons
 
+        seasons = get_seasons()
+
+        for index, season in enumerate(seasons, start=1):
+            if index > top_n_seasons:
+                break
+            self.fetcher.request.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock_id, years_x_seasons[0], years_x_seasons[1]))
+            row_tags = self.fetcher.request.find_elements('//table[@class="result_table hasBorder dp1543453259_text"]//tr[not(th)]')
         return None
+
+
+
+
+
