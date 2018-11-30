@@ -1,11 +1,11 @@
 import unittest
-import app.excel_handler
+from app import excel_handler
 import fnmatch
 import os
 
 
-class ExcelHandlerTest(unittest.TestCase):
-    handler = app.excel_handler.ExcelHandler()
+class TestExcelHandler(unittest.TestCase):
+    handler = excel_handler.ExcelHandler()
 
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
