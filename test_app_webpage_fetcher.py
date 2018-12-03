@@ -1,9 +1,9 @@
 import unittest
-import webpage_fetcher
+from app_webpage_fetcher import AppWebpageFetcher
 
 
-class TestWebpageFetcher(unittest.TestCase):
-    fetcher = webpage_fetcher.WebpageFetcher()
+class TestAppWebpageFetcher(unittest.TestCase):
+    fetcher = AppWebpageFetcher()
 
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
@@ -45,5 +45,5 @@ class TestWebpageFetcher(unittest.TestCase):
 
 if __name__ == '__main__':
     tests = ['test_find_elements']
-    suite = unittest.TestSuite(map(TestWebpageFetcher, tests))
+    suite = unittest.TestSuite(map(TestAppWebpageFetcher, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

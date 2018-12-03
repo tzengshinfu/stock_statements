@@ -29,7 +29,7 @@
             "name": "Python: Test current File (Integrated Terminal)",
             "type": "python",
             "request": "launch",
-            "program": "${fileDirname}\\${fileBasenameNoExtension}_test.py",
+            "program": "${fileDirname}\\test_${fileBasenameNoExtension}.py",
             "console": "integratedTerminal"
         },
         {

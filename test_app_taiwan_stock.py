@@ -1,9 +1,9 @@
 import unittest
-import taiwan_stock
+from app_taiwan_stock import AppTaiwanStock
 
 
-class TestTaiwanStock(unittest.TestCase):
-    stock = taiwan_stock.TaiwanStock()
+class TestAppTaiwanStock(unittest.TestCase):
+    stock = AppTaiwanStock()
 
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
@@ -31,10 +31,13 @@ class TestTaiwanStock(unittest.TestCase):
         self.assertNotEqual(basics, {})
 
     def test_get_table(self):
-        self.stock.get_table('http://mops.twse.com.tw/server-java/t164sb01', 2)
+        self.stock.get_table('1101', 2)
+
+    def test_get_excel(self):
+        self.stock.get_excel()
 
 
 if __name__ == '__main__':
-    tests = ['test_get_table']
-    suite = unittest.TestSuite(map(TestTaiwanStock, tests))
+    tests = ['test_get_excel']
+    suite = unittest.TestSuite(map(TestAppTaiwanStock, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

@@ -2,7 +2,7 @@ import xlwings as xw
 import lazy_object_proxy
 
 
-class ExcelHandler():
+class AppExcelHandler():
     def __init__(self):
         self.application = lazy_object_proxy.Proxy(self.initial_application)
         self.book = self.application.books.active

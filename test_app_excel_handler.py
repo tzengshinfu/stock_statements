@@ -1,11 +1,11 @@
 import unittest
-from app import excel_handler
+from app_excel_handler import AppExcelHandler
 import fnmatch
 import os
 
 
-class TestExcelHandler(unittest.TestCase):
-    handler = excel_handler.ExcelHandler()
+class TestAppExcelHandler(unittest.TestCase):
+    handler = AppExcelHandler()
 
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
@@ -42,5 +42,5 @@ class TestExcelHandler(unittest.TestCase):
 
 if __name__ == '__main__':
     tests = ['test_paste_array_to_sheet']
-    suite = unittest.TestSuite(map(ExcelHandlerTest, tests))
+    suite = unittest.TestSuite(map(TestAppExcelHandler, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

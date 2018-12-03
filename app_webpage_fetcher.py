@@ -6,9 +6,10 @@ import requests
 import tempfile
 import lazy_object_proxy
 from lxml import etree
+from lxml.html.clean import Cleaner
 
 
-class WebpageFetcher():
+class AppWebpageFetcher():
     tempdir_path = tempfile.gettempdir()
 
     def __init__(self):
@@ -29,7 +30,7 @@ class WebpageFetcher():
             options.add_argument('--start-maximized')
             options.add_argument('--hide-scrollbars')
             options.add_argument('--incognito')
-            options.add_argument('--disk-cache-dir="' + WebpageFetcher.tempdir_path + '\\Headless_cache"')
+            options.add_argument('--disk-cache-dir="' + AppWebpageFetcher.tempdir_path + '\\Headless_cache"')
             options.add_argument('--download-whole-document')
             options.add_argument('--deterministic-fetch')
             options.add_argument('--ignore-certificate-errors')
@@ -47,7 +48,7 @@ class WebpageFetcher():
             options.add_argument('--no-first-run')
             options.add_argument('--test-type')
             prefs = {
-                'download.default_directory': WebpageFetcher.tempdir_path + '\\Headless_downloads',
+                'download.default_directory': AppWebpageFetcher.tempdir_path + '\\Headless_downloads',
                 'download.prompt_for_download': False,
                 'download.directory_upgrade': True,
                 'browser.enable_spellchecking': False,
@@ -111,6 +112,8 @@ class WebpageFetcher():
     class __Request():
         def __init__(self):
             self.response = None
+            self.tree = None
+            self.cleaner = Cleaner(style=True, scripts=True, page_structure=False, safe_attrs_only=False)
 
         def go_to(self, url, method='get', data=None):
             """取得瀏覽器回應
@@ -134,13 +137,17 @@ class WebpageFetcher():
             if method == 'get':
                 response = requests.get(
                     url, params=data, headers=get_browser_headers(), verify=False)
+                self.response = response
+                self.tree = etree.HTML(self.cleaner.clean_html(self.response.text))
             elif method == 'post':
                 response = requests.post(
                     url, data=data, headers=get_browser_headers(), verify=False)
+                self.response = response
+                self.tree = etree.HTML(self.cleaner.clean_html(self.response.text))
             elif method == 'download':
                 response = requests.get(
                     url, headers=get_browser_headers(), verify=False, stream=True)
-            self.response = response
+                self.response = response
 
         def download_file(self, url):
             file_path = self.tempdir_path + '\\' + url.split('/')[-1]
@@ -152,11 +159,8 @@ class WebpageFetcher():
             return file_path
 
         def find_element(self, element_xpath):
-            tree = etree.HTML(self.response.text)
-            element = tree.xpath(element_xpath)
+            element = self.tree.xpath(element_xpath)
             return element
 
         def find_elements(self, elements_xpath):
-            tree = etree.HTML(self.response.text)
-            elements = tree.xpath(elements_xpath)
-            return elements
+            return self.find_element(elements_xpath)
