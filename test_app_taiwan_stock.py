@@ -5,6 +5,7 @@ from app_taiwan_stock import AppTaiwanStock
 class TestAppTaiwanStock(unittest.TestCase):
     stock = AppTaiwanStock()
 
+    # region 初始方法
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
 
@@ -21,23 +22,13 @@ class TestAppTaiwanStock(unittest.TestCase):
 
     def tearDown(self):
         pass
+    # endregion
 
-    def test_get_codes(self):
-        codes = self.stock.get_code_list()
-        self.assertNotEqual(codes, [])
-
-    def test_get_basicinfo_1101(self):
-        basics = self.stock.get_basic_info('1101')
-        self.assertNotEqual(basics, {})
-
-    def test_get_table(self):
-        self.stock.get_table('1101', 2)
-
-    def test_get_excel(self):
-        self.stock.get_excel()
+    def test_get_basic_info_files(self):
+        self.stock.get_basic_info_files()
 
 
 if __name__ == '__main__':
-    tests = ['test_get_excel']
+    tests = ['test_get_basic_info_files']
     suite = unittest.TestSuite(map(TestAppTaiwanStock, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

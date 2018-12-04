@@ -7,6 +7,7 @@ import os
 class TestAppExcelHandler(unittest.TestCase):
     handler = AppExcelHandler()
 
+    # region 初始方法
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
 
@@ -23,6 +24,7 @@ class TestAppExcelHandler(unittest.TestCase):
 
     def tearDown(self):
         pass
+    # endregion
 
     def test_save_workbook(self):
         self.handler.save_workbook('d:\\desktop\\book.xlsx')
@@ -41,6 +43,6 @@ class TestAppExcelHandler(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    tests = ['test_paste_array_to_sheet']
+    tests = ['test_save_workbook']
     suite = unittest.TestSuite(map(TestAppExcelHandler, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

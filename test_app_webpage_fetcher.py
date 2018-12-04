@@ -5,6 +5,7 @@ from app_webpage_fetcher import AppWebpageFetcher
 class TestAppWebpageFetcher(unittest.TestCase):
     fetcher = AppWebpageFetcher()
 
+    # region 初始方法
     def __init__(self, *args, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
 
@@ -21,9 +22,9 @@ class TestAppWebpageFetcher(unittest.TestCase):
 
     def tearDown(self):
         pass
+    # endregion
 
-    def test_initial_browser(self):
-        self.fetcher.initial_browser()
+    def test_go_to(self):
         self.fetcher.go_to('https://www.google.com')
 
     def test_download_file(self):
@@ -36,7 +37,7 @@ class TestAppWebpageFetcher(unittest.TestCase):
         self.fetcher.request.go_to(
             'http://mops.twse.com.tw/mops/web/t05st03',
             'post',
-            data='firstin=1&co_id=' + '1101')
+            'firstin=1&co_id=' + '1101')
         trs = self.fetcher.request.find_elements('//table[@class="hasBorder"]//tr')
         for tr in trs:
             print(tr.value)
@@ -44,6 +45,6 @@ class TestAppWebpageFetcher(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    tests = ['test_find_elements']
+    tests = ['test_download_file']
     suite = unittest.TestSuite(map(TestAppWebpageFetcher, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

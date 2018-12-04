@@ -15,13 +15,36 @@ class AppTaiwanStock():
     handler = AppExcelHandler()
     work_directory = None
 
-    def get_financial_statements(self):
-        code_list = self.get_code_list()
-        self.handler.sheet.range('A1').value = code_list
-        self.handler.save_workbook('C:\\code_list.xlsx')
-        self.handler.exit()
+    def get_financial_statement_files(self):
+        self.get_basic_info_files()
 
-    def get_code_list(self) -> list:
+    def get_basic_info_files(self):
+        form = gui.FlexForm('設定台股上巿股票Excel存放路徑')
+        layout = [
+                [gui.Text('請輸入下載Excel存放的磁碟代號及目錄名')],
+                [gui.Text('Drive', size=(15, 1)), gui.InputText('C')],
+                [gui.Text('Folder', size=(15, 1)), gui.InputText('Excel')],
+                [gui.Submit(), gui.Cancel()]
+                ]
+        button, values = form.Layout(layout).Read()
+
+        if button == 'Submit':
+            self.work_directory = values[0] + ':\\' + values[1] + '\\'
+            if not os.path.exists(self.work_directory):
+                os.makedirs(self.work_directory)
+
+            code_list = self.__get_code_list()
+            for code in code_list:
+                excel_path = self.work_directory + code[0] + '(' + code[1] + ').xlsx'
+                if not os.path.exists(excel_path):
+                    self.handler.save_workbook(excel_path)
+            gui.Popup('建立完成。')
+
+            self.handler.exit()
+        else:
+            gui.Popup('取消建立!')
+
+    def __get_code_list(self) -> list:
         """取得台股上巿股票代號/名稱列表
 
         Returns:
@@ -33,27 +56,6 @@ class AppTaiwanStock():
         for code in codes:
             code_list.append([code[0:4], code[4:]])
         return code_list
-
-    def get_excel(self):
-        form = gui.FlexForm('設定Excel存放路徑')
-        layout = [
-                [gui.Text('請輸入下載Excel存放的磁碟代號及目錄名')],
-                [gui.Text('Drive', size=(15, 1)), gui.InputText('C')],
-                [gui.Text('Folder', size=(15, 1)), gui.InputText('Excel')],
-                [gui.Submit(), gui.Cancel()]
-                ]
-        button, values = form.Layout(layout).Read()
-        if button == 'Submit':
-            self.work_directory = values[0] + ':\\' + values[1] + '\\'
-            if not os.path.exists(self.work_directory):
-                os.makedirs(self.work_directory)
-            code_list = self.get_code_list()
-            for code in code_list:
-                self.handler.save_workbook(self.work_directory + code[0] + '(' + code[1] + ').xlsx')
-            gui.Popup('建立完成。')
-            self.handler.exit()
-        else:
-            gui.Popup('取消建立!')
 
     def get_basic_info(self, stock_id: str) -> dict:
         """取得台股上巿股票基本資料
