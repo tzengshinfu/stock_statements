@@ -37,6 +37,8 @@ class AppTaiwanStock():
             for code in code_list:
                 excel_path = self.work_directory + code[0] + '(' + code[1] + ').xlsx'
                 if not os.path.exists(excel_path):
+                    basic_info = self.__get_basic_info(code[0])
+                    self.handler.sheet.range('A1').value = basic_info
                     self.handler.save_workbook(excel_path)
             gui.Popup('建立完成。')
 
@@ -57,7 +59,7 @@ class AppTaiwanStock():
             code_list.append([code[0:4], code[4:]])
         return code_list
 
-    def get_basic_info(self, stock_id: str) -> dict:
+    def __get_basic_info(self, stock_id: str) -> dict:
         """取得台股上巿股票基本資料
 
         Arguments:
