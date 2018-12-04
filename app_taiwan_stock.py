@@ -3,6 +3,8 @@ from app_excel_handler import AppExcelHandler
 import datetime
 import PySimpleGUI as gui
 import os
+import time
+import random
 
 
 # TODO 財務附註 http://mops.twse.com.tw/server-java/t164sb01
@@ -40,6 +42,7 @@ class AppTaiwanStock():
                     basic_info = self.__get_basic_info(code[0])
                     self.handler.sheet.range('A1').value = basic_info
                     self.handler.save_workbook(excel_path)
+                    time.sleep(random.randint(2, 5))
             gui.Popup('建立完成。')
 
             self.handler.exit()
