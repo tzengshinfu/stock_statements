@@ -41,13 +41,11 @@ class AppTaiwanStock():
                 if not os.path.exists(excel_path):
                     basic_info = self.__get_basic_info(code[0])
                     self.excel.add_book()
-                    self.excel.turnoff_unnecessary_features()
                     self.excel.sheet.range('A1').value = basic_info
                     self.excel.save_book(excel_path)
                     self.excel.close_book()
                     time.sleep(random.randint(2, 5))
 
-            self.excel.turnon_unnecessary_features()
             self.excel.exit()
             gui.Popup('建立完成。')
         else:

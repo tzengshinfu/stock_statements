@@ -5,11 +5,12 @@ import lazy_object_proxy
 class AppExcelHandler():
     def __init__(self):
         self.application = lazy_object_proxy.Proxy(self.__initial_application)
+        self.__features_switch = True
 
     def __initial_application(self):
         return xw.App(visible=False, add_book=False)
 
-    def __toggle_unnecessary_features(self, switch):
+    def __toggle_features(self, switch):
         if (switch is False):
             self.__save_current_features()
             self.application.calculation = 'manual'
@@ -26,11 +27,15 @@ class AppExcelHandler():
             self.application.api.EnableAnimations = self.current_enable_animations
             self.sheet.api.DisplayPagebreaks = self.current_display_pagebreaks
 
-    def turnon_unnecessary_features(self):
-        self.__toggle_unnecessary_features(True)
+    def turnon_features(self):
+        if self.__features_switch is False:
+            self.__toggle_features(True)
+            self.__features_switch = True
 
-    def turnoff_unnecessary_features(self):
-        self.__toggle_unnecessary_features(False)
+    def turnoff_features(self):
+        if self.__features_switch is True:
+            self.__toggle_features(False)
+            self.__features_switch = False
 
     def __save_current_features(self):
         self.current_calculation = self.application.calculation
@@ -47,9 +52,11 @@ class AppExcelHandler():
         book = self.application.books.add()
         self.book = book
         self.sheet = self.book.sheets.active
+        self.turnoff_features()
 
     def save_book(self, excel_path):
         self.book.save(excel_path)
 
     def close_book(self):
+        self.turnon_features()
         self.book.close()
