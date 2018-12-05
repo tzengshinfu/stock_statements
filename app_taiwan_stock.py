@@ -14,7 +14,7 @@ import random
 # EPS改用程式計算
 class AppTaiwanStock():
     fetcher = AppWebpageFetcher()
-    handler = AppExcelHandler()
+    excel = AppExcelHandler()
     work_directory = None
 
     def get_financial_statement_files(self):
@@ -40,12 +40,16 @@ class AppTaiwanStock():
                 excel_path = self.work_directory + code[0] + '(' + code[1] + ').xlsx'
                 if not os.path.exists(excel_path):
                     basic_info = self.__get_basic_info(code[0])
-                    self.handler.sheet.range('A1').value = basic_info
-                    self.handler.save_workbook(excel_path)
+                    self.excel.add_book()
+                    self.excel.turnoff_unnecessary_features()
+                    self.excel.sheet.range('A1').value = basic_info
+                    self.excel.save_book(excel_path)
+                    self.excel.close_book()
                     time.sleep(random.randint(2, 5))
-            gui.Popup('建立完成。')
 
-            self.handler.exit()
+            self.excel.turnon_unnecessary_features()
+            self.excel.exit()
+            gui.Popup('建立完成。')
         else:
             gui.Popup('取消建立!')
 

@@ -5,15 +5,9 @@ import lazy_object_proxy
 class AppExcelHandler():
     def __init__(self):
         self.application = lazy_object_proxy.Proxy(self.__initial_application)
-        self.book = self.application.books.active
-        self.sheet = self.book.sheets.active
-        self.__save_current_features()
 
     def __initial_application(self):
-        return xw.App(visible=False)
-
-    def save_workbook(self, file_path):
-        self.book.save(file_path)
+        return xw.App(visible=False, add_book=False)
 
     def __toggle_unnecessary_features(self, switch):
         if (switch is False):
@@ -47,4 +41,15 @@ class AppExcelHandler():
         self.current_display_pagebreaks = self.sheet.api.DisplayPagebreaks
 
     def exit(self):
-        self.application.kill()
+        self.application.quit()
+
+    def add_book(self):
+        book = self.application.books.add()
+        self.book = book
+        self.sheet = self.book.sheets.active
+
+    def save_book(self, excel_path):
+        self.book.save(excel_path)
+
+    def close_book(self):
+        self.book.close()
