@@ -1,11 +1,11 @@
 import unittest
-from app_excel_handler import AppExcelHandler
+from cls_excel_handler import ClsExcelHandler
 import fnmatch
 import os
 
 
-class TestAppExcelHandler(unittest.TestCase):
-    handler = AppExcelHandler()
+class ClsExcelHandlerTest(unittest.TestCase):
+    handler = ClsExcelHandler()
 
     # region 初始方法
     def __init__(self, *args, **kwargs):
@@ -26,8 +26,8 @@ class TestAppExcelHandler(unittest.TestCase):
         pass
     # endregion
 
-    def test_save_workbook(self):
-        self.handler.save_workbook('d:\\desktop\\book.xlsx')
+    def test_save_book(self):
+        self.handler.save_book('d:\\desktop\\book.xlsx')
         file_existed = False
 
         for file in os.listdir('d:\\desktop'):
@@ -43,6 +43,6 @@ class TestAppExcelHandler(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    tests = ['test_save_workbook']
-    suite = unittest.TestSuite(map(TestAppExcelHandler, tests))
+    tests = ['test_save_book']
+    suite = unittest.TestSuite(map(ClsExcelHandlerTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

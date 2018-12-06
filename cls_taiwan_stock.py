@@ -1,8 +1,7 @@
-from app_webpage_fetcher import AppWebpageFetcher
-from app_excel_handler import AppExcelHandler
+from cls_webpage_fetcher import ClsWebpageFetcher
+from cls_excel_handler import ClsExcelHandler
 import datetime
 import PySimpleGUI as gui
-import os
 import time
 import random
 
@@ -12,10 +11,9 @@ import random
 # http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID=1101&SYEAR=2018&SSEASON=3&REPORT_ID=C
 # http://mops.twse.com.tw/mops/web/t05st22_q1
 # EPS改用程式計算
-class AppTaiwanStock():
-    fetcher = AppWebpageFetcher()
-    excel = AppExcelHandler()
-    work_directory = None
+class ClsTaiwanStock():
+    fetcher = ClsWebpageFetcher()
+    excel = ClsExcelHandler()
 
     def get_financial_statement_files(self):
         self.get_basic_info_files()
@@ -24,32 +22,30 @@ class AppTaiwanStock():
         form = gui.FlexForm('設定台股上巿股票Excel存放路徑')
         layout = [
                 [gui.Text('請輸入下載Excel存放的磁碟代號及目錄名')],
-                [gui.Text('Drive', size=(15, 1)), gui.InputText('C')],
+                [gui.Text('Drive', size=(15, 1)), gui.InputText('Z')],
                 [gui.Text('Folder', size=(15, 1)), gui.InputText('Excel')],
                 [gui.Submit(), gui.Cancel()]
                 ]
         button, values = form.Layout(layout).Read()
 
         if button == 'Submit':
-            self.work_directory = values[0] + ':\\' + values[1] + '\\'
-            if not os.path.exists(self.work_directory):
-                os.makedirs(self.work_directory)
+            self.excel.create_work_directory(values[0], values[1])
 
             code_list = self.__get_code_list()
             for code in code_list:
-                excel_path = self.work_directory + code[0] + '(' + code[1] + ').xlsx'
-                if not os.path.exists(excel_path):
+                if not self.excel.is_book_existed(code[0], code[1]):
                     basic_info = self.__get_basic_info(code[0])
                     self.excel.add_book()
-                    self.excel.sheet.range('A1').value = basic_info
-                    self.excel.save_book(excel_path)
-                    self.excel.close_book()
-                    time.sleep(random.randint(2, 5))
+                    self.excel.write_values(basic_info)
+                    self.excel.save_book(code[0], code[1])
+                    time.sleep(random.randint(2, 7))
 
             self.excel.exit()
             gui.Popup('建立完成。')
+            form.Close()
         else:
             gui.Popup('取消建立!')
+            form.Close()
 
     def __get_code_list(self) -> list:
         """取得台股上巿股票代號/名稱列表
@@ -64,14 +60,14 @@ class AppTaiwanStock():
             code_list.append([code[0:4], code[4:]])
         return code_list
 
-    def __get_basic_info(self, stock_id: str) -> dict:
+    def __get_basic_info(self, stock_id: str) -> list:
         """取得台股上巿股票基本資料
 
         Arguments:
             stock_id {str} -- 股票代碼
 
         Returns:
-            {dict} -- 基本資料
+            {list} -- 基本資料
         """
         basic_info = {}
         self.fetcher.request.go_to(
@@ -102,7 +98,8 @@ class AppTaiwanStock():
                     else:
                         if (cell.tag == 'td'):
                             basic_info[title] = cell.text.strip()
-        return basic_info
+        basic_info_list = self.excel.convert_to_list(basic_info)
+        return basic_info_list
 
     def get_options(self, options_xpath: str) -> list:
         """取得下拉清單內容的list

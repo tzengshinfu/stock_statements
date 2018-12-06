@@ -1,9 +1,9 @@
 import unittest
-from app_webpage_fetcher import AppWebpageFetcher
+from cls_webpage_fetcher import ClsWebpageFetcher
 
 
-class TestAppWebpageFetcher(unittest.TestCase):
-    fetcher = AppWebpageFetcher()
+class ClsWebpageFetcherTest(unittest.TestCase):
+    fetcher = ClsWebpageFetcher()
 
     # region 初始方法
     def __init__(self, *args, **kwargs):
@@ -46,5 +46,5 @@ class TestAppWebpageFetcher(unittest.TestCase):
 
 if __name__ == '__main__':
     tests = ['test_download_file']
-    suite = unittest.TestSuite(map(TestAppWebpageFetcher, tests))
+    suite = unittest.TestSuite(map(ClsWebpageFetcherTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

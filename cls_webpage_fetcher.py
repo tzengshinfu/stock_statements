@@ -9,7 +9,7 @@ from lxml import etree
 from lxml.html.clean import Cleaner
 
 
-class AppWebpageFetcher():
+class ClsWebpageFetcher():
     tempdir_path = tempfile.gettempdir()
 
     def __init__(self):
@@ -30,7 +30,7 @@ class AppWebpageFetcher():
             options.add_argument('--start-maximized')
             options.add_argument('--hide-scrollbars')
             options.add_argument('--incognito')
-            options.add_argument('--disk-cache-dir="' + AppWebpageFetcher.tempdir_path + '\\Headless_cache"')
+            options.add_argument('--disk-cache-dir="' + ClsWebpageFetcher.tempdir_path + '\\Headless_cache"')
             options.add_argument('--download-whole-document')
             options.add_argument('--deterministic-fetch')
             options.add_argument('--ignore-certificate-errors')
@@ -48,7 +48,7 @@ class AppWebpageFetcher():
             options.add_argument('--no-first-run')
             options.add_argument('--test-type')
             prefs = {
-                'download.default_directory': AppWebpageFetcher.tempdir_path + '\\Headless_downloads',
+                'download.default_directory': ClsWebpageFetcher.tempdir_path + '\\Headless_downloads',
                 'download.prompt_for_download': False,
                 'download.directory_upgrade': True,
                 'browser.enable_spellchecking': False,

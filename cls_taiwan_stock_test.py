@@ -1,9 +1,9 @@
 import unittest
-from app_taiwan_stock import AppTaiwanStock
+from cls_taiwan_stock import ClsTaiwanStock
 
 
-class TestAppTaiwanStock(unittest.TestCase):
-    stock = AppTaiwanStock()
+class ClsTaiwanStockTest(unittest.TestCase):
+    stock = ClsTaiwanStock()
 
     # region 初始方法
     def __init__(self, *args, **kwargs):
@@ -30,5 +30,5 @@ class TestAppTaiwanStock(unittest.TestCase):
 
 if __name__ == '__main__':
     tests = ['test_get_basic_info_files']
-    suite = unittest.TestSuite(map(TestAppTaiwanStock, tests))
+    suite = unittest.TestSuite(map(ClsTaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
