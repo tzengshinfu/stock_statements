@@ -7,6 +7,7 @@ import tempfile
 import lazy_object_proxy
 from lxml import etree
 from lxml.html.clean import Cleaner
+from retry import retry
 
 
 class ClsWebpageFetcher():
@@ -115,7 +116,7 @@ class ClsWebpageFetcher():
             self.tree = None
             self.cleaner = Cleaner(style=True, scripts=True, page_structure=False, safe_attrs_only=False)
 
-        # TODO retry 0.92
+        @retry((ConnectionError, ConnectionRefusedError), delay=1, backoff=2, max_delay=2)
         def go_to(self, url, method='get', data=None):
             """取得瀏覽器回應
 

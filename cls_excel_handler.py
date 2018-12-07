@@ -19,7 +19,7 @@ class ClsExcelHandler():
 
     def write_values(self, values):
         if type(values) is list:
-            for row in range(1, len(values.items())):
+            for row in range(1, len(values)):
                 self.sheet.append(values[row])
         else:
             self.sheet.append(values)
