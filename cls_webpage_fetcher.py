@@ -115,6 +115,7 @@ class ClsWebpageFetcher():
             self.tree = None
             self.cleaner = Cleaner(style=True, scripts=True, page_structure=False, safe_attrs_only=False)
 
+        # TODO retry 0.92
         def go_to(self, url, method='get', data=None):
             """取得瀏覽器回應
 
