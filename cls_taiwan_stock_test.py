@@ -27,6 +27,9 @@ class ClsTaiwanStockTest(unittest.TestCase):
     def test_get_basic_info_files(self):
         self.stock.get_basic_info_files()
 
+    def test_get_table(self):
+        self.stock.get_table('1101', 2)
+
 
 if __name__ == '__main__':
     tests = ['test_get_basic_info_files']

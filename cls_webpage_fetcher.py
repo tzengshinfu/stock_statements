@@ -116,7 +116,7 @@ class ClsWebpageFetcher():
             self.tree = None
             self.cleaner = Cleaner(style=True, scripts=True, page_structure=False, safe_attrs_only=False)
 
-        @retry((ConnectionError, ConnectionRefusedError), delay=1, backoff=2, max_delay=2)
+        @retry((ConnectionError, ConnectionRefusedError), tries=3, delay=10)
         def go_to(self, url, method='get', data=None):
             """取得瀏覽器回應
 
