@@ -6,7 +6,6 @@ import requests
 import tempfile
 import lazy_object_proxy
 from lxml import etree
-from lxml.html.clean import Cleaner
 from retry import retry
 
 
@@ -114,7 +113,6 @@ class ClsWebpageFetcher():
         def __init__(self):
             self.response = None
             self.tree = None
-            self.cleaner = Cleaner(style=True, scripts=True, page_structure=False, safe_attrs_only=False)
 
         @retry((ConnectionError, ConnectionRefusedError), tries=3, delay=10)
         def go_to(self, url, method='get', data=None):
@@ -139,13 +137,15 @@ class ClsWebpageFetcher():
             if method == 'get':
                 response = requests.get(
                     url, params=data, headers=get_browser_headers(), verify=False)
+                response.encoding = response.apparent_encoding
                 self.response = response
-                self.tree = etree.HTML(self.cleaner.clean_html(self.response.text))
+                self.tree = etree.HTML(self.response.text)
             elif method == 'post':
                 response = requests.post(
                     url, data=data, headers=get_browser_headers(), verify=False)
+                response.encoding = response.apparent_encoding
                 self.response = response
-                self.tree = etree.HTML(self.cleaner.clean_html(self.response.text))
+                self.tree = etree.HTML(self.response.text)
             elif method == 'download':
                 response = requests.get(
                     url, headers=get_browser_headers(), verify=False, stream=True)

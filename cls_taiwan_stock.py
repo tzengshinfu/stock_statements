@@ -52,10 +52,8 @@ class ClsTaiwanStock():
             {list} -- 股票代號/名稱列表
         """
         code_list = []
-        self.fetcher.request.go_to(
-            'http://www.twse.com.tw/zh/stockSearch/stockSearch')
-        codes = self.fetcher.request.find_elements(
-            '//table[@class="grid"]//a/text()')
+        self.fetcher.request.go_to('http://www.twse.com.tw/zh/stockSearch/stockSearch')
+        codes = self.fetcher.request.find_elements('//table[@class="grid"]//a/text()')
         for code in codes:
             code_list.append([code[0:4], code[4:]])
         return code_list
@@ -70,10 +68,8 @@ class ClsTaiwanStock():
             {list} -- 基本資料
         """
         basic_info = {}
-        self.fetcher.request.go_to('http://mops.twse.com.tw/mops/web/t05st03',
-                                   'post', 'firstin=1&co_id=' + stock_id)
-        row_tags = self.fetcher.request.find_elements(
-            '//table[@class="hasBorder"]//tr')
+        self.fetcher.request.go_to('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + stock_id)
+        row_tags = self.fetcher.request.find_elements('//table[@class="hasBorder"]//tr')
         title = ''
         for row_tag in row_tags:
             if (row_tag[0].text.strip() == '本公司'):
@@ -86,8 +82,7 @@ class ClsTaiwanStock():
                 basic_info['會計年度月制轉換'] = row_tag[1].text.strip()
             if (row_tag[0].text.strip() == '編製財務報告類型'):
                 report_type = row_tag[1].text.strip()
-                basic_info[row_tag[0].text.strip()] = report_type[
-                    1:3] if report_type[0] == '●' else report_type[4:6]
+                basic_info[row_tag[0].text.strip()] = report_type[1:3] if report_type[0] == '●' else report_type[4:6]
             else:
                 for index, cell in enumerate(row_tag, start=1):
                     if (index % 2 == 1):
@@ -133,10 +128,8 @@ class ClsTaiwanStock():
             }
             return mapping.get(month)
 
-        self.fetcher.request.go_to(
-            'http://mops.twse.com.tw/server-java/t164sb01')
-        years = self.fetcher.request.find_elements(
-            '//select[@id="SYEAR"]//option/@value')
+        self.fetcher.request.go_to('http://mops.twse.com.tw/server-java/t164sb01')
+        years = self.fetcher.request.find_elements('//select[@id="SYEAR"]//option/@value')
         current_year = str(datetime.datetime.now().year)
         current_season = get_mapping(str(datetime.datetime.now().month))
         seasons = []
@@ -163,11 +156,8 @@ class ClsTaiwanStock():
             if top_n_seasons_count != 0:
                 if index > top_n_seasons_count:
                     break
-            self.fetcher.request.go_to(
-                'http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'
-                .format(stock_id, season[0], season[1]))
-            row_tags = self.fetcher.request.find_elements(
-                '//table[@class="result_table hasBorder"]//tr[not(th)]')
+            self.fetcher.request.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock_id, season[0], season[1]))
+            row_tags = self.fetcher.request.find_elements('//table[@class="result_table hasBorder"]//tr[not(th)]')
             records = []
             for row_tag in row_tags:
                 record = []

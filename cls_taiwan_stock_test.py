@@ -32,6 +32,6 @@ class ClsTaiwanStockTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    tests = ['test_get_basic_info_files']
+    tests = ['test_get_table']
     suite = unittest.TestSuite(map(ClsTaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
