@@ -14,38 +14,40 @@ import random
 class ClsTaiwanStock():
     fetcher = ClsWebpageFetcher()
     excel = ClsExcelHandler()
+    form = None
 
     def get_financial_statement_files(self):
-        self.get_basic_info_files()
-
-    def get_basic_info_files(self):
-        form = gui.FlexForm('設定台股上巿股票Excel存放路徑')
-        layout = [[gui.Text('請輸入下載Excel存放的磁碟代號及目錄名')],
-                  [gui.Text('Drive', size=(15, 1)), gui.InputText('Z')],
-                  [gui.Text('Folder', size=(15, 1)), gui.InputText('Excel')],
-                  [gui.Submit(), gui.Cancel()]]
-        button, values = form.Layout(layout).Read()
-
+        result = self.set_excel_path()
+        button = result[0]
+        values = result[1]
         if button == 'Submit':
             self.excel.create_work_directory(values[0], values[1])
-
-            code_list = self.__get_code_list()
-            for code in code_list:
-                if not self.excel.is_book_existed(code[0], code[1]):
-                    basic_info = self.__get_basic_info(code[0])
-                    self.excel.add_book()
-                    self.excel.write_values(basic_info)
-                    self.excel.save_book(code[0], code[1])
-                    time.sleep(random.randint(2, 7))
-
-            self.excel.exit()
+            code_list = self.get_code_list()
+            self.get_basic_info_files(code_list)
             gui.Popup('建立完成。')
-            form.Close()
+            self.form.Close()
         else:
             gui.Popup('取消建立!')
-            form.Close()
+            self.form.Close()
 
-    def __get_code_list(self) -> list:
+    def set_excel_path(self):
+        self.form = gui.FlexForm('設定台股上巿股票Excel存放路徑')
+        layout = [[gui.Text('請輸入下載Excel存放的磁碟代號及目錄名')], [gui.Text('Drive', size=(15, 1)), gui.InputText('Z')], [gui.Text('Folder', size=(15, 1)), gui.InputText('Excel')], [gui.Submit(), gui.Cancel()]]
+        result = self.form.Layout(layout).Read()
+        return result
+
+    def get_basic_info_files(self, code_list: list):
+        for code in code_list:
+            if not self.excel.is_book_existed(code[0], code[1]):
+                basic_info = self.__get_basic_info(code[0])
+                self.excel.add_book()
+                self.excel.write_values(basic_info)
+                self.excel.save_book(code[0], code[1])
+                time.sleep(random.randint(2, 7))
+
+
+
+    def get_code_list(self) -> list:
         """取得台股上巿股票代號/名稱列表
 
         Returns:
@@ -161,7 +163,7 @@ class ClsTaiwanStock():
             records = []
             for row_tag in row_tags:
                 record = []
-                cell_tags = row_tag.xpath('./td')
+                cell_tags = row_tag.xpath('./td[position() <= 2]')
                 for cell_tag in cell_tags:
                     record.append(cell_tag.text)
                 records.append(record)

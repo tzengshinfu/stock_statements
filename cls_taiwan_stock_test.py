@@ -30,8 +30,11 @@ class ClsTaiwanStockTest(unittest.TestCase):
     def test_get_table(self):
         self.stock.get_table('1101', 2)
 
+    def test_setExcelPath(self):
+        self.stock.set_excel_path()
+
 
 if __name__ == '__main__':
-    tests = ['test_get_table']
+    tests = ['test_setExcelPath']
     suite = unittest.TestSuite(map(ClsTaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
