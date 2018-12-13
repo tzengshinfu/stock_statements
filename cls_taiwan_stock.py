@@ -4,6 +4,7 @@ import datetime
 import PySimpleGUI as gui
 import time
 import random
+from collections import namedtuple
 
 
 # TODO 財務附註 http://mops.twse.com.tw/server-java/t164sb01
@@ -18,10 +19,8 @@ class ClsTaiwanStock():
 
     def get_financial_statement_files(self):
         result = self.set_excel_path()
-        button = result[0]
-        values = result[1]
-        if button == 'Submit':
-            self.excel.create_work_directory(values[0], values[1])
+        if result.action == 'Submit':
+            self.excel.create_work_directory(result.drive_letter, result.directory_name)
             code_list = self.get_code_list()
             self.get_basic_info_files(code_list)
             self.get_statment_files(code_list)
@@ -31,10 +30,14 @@ class ClsTaiwanStock():
             gui.Popup('取消建立!')
             self.form.Close()
 
-    def set_excel_path(self):
+    def set_excel_path(self) -> namedtuple:
         self.form = gui.FlexForm('設定台股上巿股票Excel存放路徑')
         layout = [[gui.Text('請輸入下載Excel存放的磁碟代號及目錄名')], [gui.Text('Drive', size=(15, 1)), gui.InputText('Z')], [gui.Text('Folder', size=(15, 1)), gui.InputText('Excel')], [gui.Submit(), gui.Cancel()]]
-        result = self.form.Layout(layout).Read()
+        result = namedtuple('result', 'action drive_letter directory_name')
+        return_values = self.form.Layout(layout).Read()
+        result.action = return_values[0]
+        result.drive_letter = return_values[1][0]
+        result.directory_name = return_values[1][1]
         return result
 
     def get_basic_info_files(self, code_list: list):
@@ -49,8 +52,8 @@ class ClsTaiwanStock():
     def get_code_list(self) -> list:
         """取得台股上巿股票代號/名稱列表
 
-        Returns:
-            {list} -- 股票代號/名稱列表
+            Returns:
+                {list} -- 股票代號/名稱列表
         """
         code_list = []
         self.fetcher.request.go_to('http://www.twse.com.tw/zh/stockSearch/stockSearch')
@@ -62,11 +65,11 @@ class ClsTaiwanStock():
     def __get_basic_info(self, stock_id: str) -> list:
         """取得台股上巿股票基本資料
 
-        Arguments:
-            stock_id {str} -- 股票代碼
+            Arguments:
+                stock_id {str} -- 股票代碼
 
-        Returns:
-            {list} -- 基本資料
+            Returns:
+                {list} -- 基本資料
         """
         basic_info = {}
         self.fetcher.request.go_to('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + stock_id)
@@ -96,14 +99,14 @@ class ClsTaiwanStock():
         basic_info_list = self.excel.convert_to_list(basic_info)
         return basic_info_list
 
-    def get_options(self, options_xpath: str) -> list:
+    def __get_options(self, options_xpath: str) -> list:
         """取得下拉清單內容的list
 
-        Arguments:
-            options_xpath {str} -- 下拉清單的XPATH
+            Arguments:
+                options_xpath {str} -- 下拉清單的XPATH
 
-        Returns:
-            {list} -- 下拉清單內容
+            Returns:
+                {list} -- 下拉清單內容
         """
         options = []
         option_tags = self.fetcher.request.find_elements(options_xpath)
@@ -111,7 +114,7 @@ class ClsTaiwanStock():
             options.append(option_tag.text)
         return options
 
-    def get_seasons(self) -> list:
+    def __get_seasons(self) -> list:
         def get_mapping(month) -> dict:
             mapping = {
                 '1': '1',
@@ -144,14 +147,14 @@ class ClsTaiwanStock():
     def get_table(self, stock_id: str, top_n_seasons_count: int = 0) -> list:
         """取得表格內容
 
-        Arguments:
-            stock_id {str} -- 股票代碼
-            top_n_seasons_count {int} -- 取得前n季(0=全部)
+            Arguments:
+                stock_id {str} -- 股票代碼
+                top_n_seasons_count {int} -- 取得前n季(0=全部)
 
-        Returns:
-            {list} -- 表格內容
+            Returns:
+                {list} -- 表格內容
         """
-        seasons = self.get_seasons()
+        seasons = self.__get_seasons()
 
         for index, season in enumerate(seasons, start=1):
             if top_n_seasons_count != 0:
@@ -169,3 +172,13 @@ class ClsTaiwanStock():
             # TODO 寫入EXCEL
 
         return seasons
+
+    def get_statment_files(self, code_list):
+        for code in code_list:
+            if not self.excel.is_book_existed(code[0], code[1]):
+                basic_info = self.__get_basic_info(code[0])
+                self.excel.add_book()
+                self.excel.write_values(basic_info)
+                self.excel.save_book(code[0], code[1])
+                time.sleep(random.randint(2, 7))
+

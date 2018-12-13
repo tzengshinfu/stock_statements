@@ -118,12 +118,12 @@ class ClsWebpageFetcher():
         def go_to(self, url, method='get', data=None):
             """取得瀏覽器回應
 
-            Arguments:
-                url {str} -- 網址
-                method {str} -- get/post/download
+                Arguments:
+                    url {str} -- 網址
+                    method {str} -- get/post/download
 
-            Keyword Arguments:
-                data {str} -- 附加資料 (default: {None})
+                Keyword Arguments:
+                    data {str} -- 附加資料 (default: {None})
             """
 
             def get_browser_headers():
