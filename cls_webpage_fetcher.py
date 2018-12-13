@@ -134,14 +134,17 @@ class ClsWebpageFetcher():
                 }
                 return browser_headers
 
+            session = requests.session()
+            session.keep_alive = False
+
             if method == 'get':
-                response = requests.get(
+                response = session.get(
                     url, params=data, headers=get_browser_headers(), verify=False)
                 response.encoding = response.apparent_encoding
                 self.response = response
                 self.tree = etree.HTML(self.response.text)
             elif method == 'post':
-                response = requests.post(
+                response = session.post(
                     url, data=data, headers=get_browser_headers(), verify=False)
                 response.encoding = response.apparent_encoding
                 self.response = response

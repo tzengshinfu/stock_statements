@@ -33,8 +33,11 @@ class ClsTaiwanStockTest(unittest.TestCase):
     def test_setExcelPath(self):
         self.stock.set_excel_path()
 
+    def test_get_financial_statement_files(self):
+        self.stock.get_financial_statement_files()
+
 
 if __name__ == '__main__':
-    tests = ['test_setExcelPath']
+    tests = ['test_get_financial_statement_files']
     suite = unittest.TestSuite(map(ClsTaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

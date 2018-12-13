@@ -24,6 +24,7 @@ class ClsTaiwanStock():
             self.excel.create_work_directory(values[0], values[1])
             code_list = self.get_code_list()
             self.get_basic_info_files(code_list)
+            self.get_statment_files(code_list)
             gui.Popup('建立完成。')
             self.form.Close()
         else:
@@ -44,8 +45,6 @@ class ClsTaiwanStock():
                 self.excel.write_values(basic_info)
                 self.excel.save_book(code[0], code[1])
                 time.sleep(random.randint(2, 7))
-
-
 
     def get_code_list(self) -> list:
         """取得台股上巿股票代號/名稱列表
