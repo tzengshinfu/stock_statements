@@ -10,11 +10,10 @@ from retry import retry
 
 
 class ClsWebpageFetcher():
-    tempdir_path = tempfile.gettempdir()
-
     def __init__(self):
         self.request = lazy_object_proxy.Proxy(self.__Request)
         self.browser = lazy_object_proxy.Proxy(self.__Browser)
+        self.tempdir_path = tempfile.gettempdir()
 
     class __Browser(webdriver.Chrome):
         def __init__(self):
@@ -138,14 +137,12 @@ class ClsWebpageFetcher():
             session.keep_alive = False
 
             if method == 'get':
-                response = session.get(
-                    url, params=data, headers=get_browser_headers(), verify=False)
+                response = session.get(url, params=data, headers=get_browser_headers(), verify=False)
                 response.encoding = response.apparent_encoding
                 self.response = response
                 self.tree = etree.HTML(self.response.text)
             elif method == 'post':
-                response = session.post(
-                    url, data=data, headers=get_browser_headers(), verify=False)
+                response = session.post(url, data=data, headers=get_browser_headers(), verify=False)
                 response.encoding = response.apparent_encoding
                 self.response = response
                 self.tree = etree.HTML(self.response.text)

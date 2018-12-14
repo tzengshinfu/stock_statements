@@ -1,7 +1,6 @@
 from cls_webpage_fetcher import ClsWebpageFetcher
 from cls_excel_handler import ClsExcelHandler
 import datetime
-import PySimpleGUI as gui
 import time
 import random
 from collections import namedtuple
@@ -15,38 +14,30 @@ from collections import namedtuple
 class ClsTaiwanStock():
     fetcher = ClsWebpageFetcher()
     excel = ClsExcelHandler()
-    form = None
 
     def get_financial_statement_files(self):
-        result = self.set_excel_path()
+        result = self.excel.show_config_form()
         if result.action == 'Submit':
-            self.excel.create_work_directory(result.drive_letter, result.directory_name)
+            self.excel.create_books_path(result.drive_letter + '\\' + result.directory_name)
             code_list = self.get_code_list()
             self.get_basic_info_files(code_list)
             self.get_statment_files(code_list)
-            gui.Popup('建立完成。')
-            self.form.Close()
+            self.excel.show_popup('建立完成。')
+            self.excel.close_config_form()
         else:
-            gui.Popup('取消建立!')
-            self.form.Close()
-
-    def set_excel_path(self) -> namedtuple:
-        self.form = gui.FlexForm('設定台股上巿股票Excel存放路徑')
-        layout = [[gui.Text('請輸入下載Excel存放的磁碟代號及目錄名')], [gui.Text('Drive', size=(15, 1)), gui.InputText('Z')], [gui.Text('Folder', size=(15, 1)), gui.InputText('Excel')], [gui.Submit(), gui.Cancel()]]
-        result = namedtuple('result', 'action drive_letter directory_name')
-        return_values = self.form.Layout(layout).Read()
-        result.action = return_values[0]
-        result.drive_letter = return_values[1][0]
-        result.directory_name = return_values[1][1]
-        return result
+            self.excel.show_popup('取消建立!')
+            self.excel.close_config_form()
 
     def get_basic_info_files(self, code_list: list):
         for code in code_list:
-            if not self.excel.is_book_existed(code[0], code[1]):
-                basic_info = self.__get_basic_info(code[0])
+            stock_id = code[0]
+            stock_name = code[1]
+            book_path = self.excel.books_path + '\\' + stock_id + '(' + stock_name + ')' + '.xlsx'
+            if not self.excel.is_book_existed(book_path):
                 self.excel.add_book()
-                self.excel.write_values(basic_info)
-                self.excel.save_book(code[0], code[1])
+                basic_info = self.__get_basic_info(stock_id)
+                self.excel.write_to_sheet(basic_info)
+                self.excel.save_book(book_path)
                 time.sleep(random.randint(2, 7))
 
     def get_code_list(self) -> list:
@@ -58,7 +49,10 @@ class ClsTaiwanStock():
         code_list = []
         self.fetcher.request.go_to('http://www.twse.com.tw/zh/stockSearch/stockSearch')
         codes = self.fetcher.request.find_elements('//table[@class="grid"]//a/text()')
+        code = namedtuple('code', 'stock_id stock_name')
         for code in codes:
+            code.stock_id = code[0]
+            code.stock_name = code[1]
             code_list.append([code[0:4], code[4:]])
         return code_list
 
@@ -96,7 +90,7 @@ class ClsTaiwanStock():
                     else:
                         if (cell.tag == 'td'):
                             basic_info[title] = cell.text.strip()
-        basic_info_list = self.excel.convert_to_list(basic_info)
+        basic_info_list = self.__convert_to_list(basic_info)
         return basic_info_list
 
     def __get_options(self, options_xpath: str) -> list:
@@ -176,9 +170,13 @@ class ClsTaiwanStock():
     def get_statment_files(self, code_list):
         for code in code_list:
             if not self.excel.is_book_existed(code[0], code[1]):
-                basic_info = self.__get_basic_info(code[0])
-                self.excel.add_book()
-                self.excel.write_values(basic_info)
-                self.excel.save_book(code[0], code[1])
-                time.sleep(random.randint(2, 7))
+                # TODO 開啟活頁簿
+                # TODO 檢查SEASON
+                # TODO 開啟工作表
+                # TODO 寫入excel
 
+    def __convert_to_list(self, original_dict: dict)->list:
+        converted_list = []
+        for key, value in original_dict.items():
+            converted_list.append([key, value])
+        return converted_list
