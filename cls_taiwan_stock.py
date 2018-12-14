@@ -174,6 +174,7 @@ class ClsTaiwanStock():
                 # TODO 檢查SEASON
                 # TODO 開啟工作表
                 # TODO 寫入excel
+                pass
 
     def __convert_to_list(self, original_dict: dict)->list:
         converted_list = []
