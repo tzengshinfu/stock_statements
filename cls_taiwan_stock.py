@@ -30,12 +30,10 @@ class ClsTaiwanStock():
 
     def get_basic_info_files(self, code_list: list):
         for code in code_list:
-            stock_id = code[0]
-            stock_name = code[1]
-            book_path = self.excel.books_path + '\\' + stock_id + '(' + stock_name + ')' + '.xlsx'
+            book_path = self.excel.books_path + '\\' + code.id + '(' + code.name + ')' + '.xlsx'
             if not self.excel.is_book_existed(book_path):
                 self.excel.add_book()
-                basic_info = self.__get_basic_info(stock_id)
+                basic_info = self.__get_basic_info(code.id)
                 self.excel.write_to_sheet(basic_info)
                 self.excel.save_book(book_path)
                 time.sleep(random.randint(2, 7))
@@ -49,11 +47,11 @@ class ClsTaiwanStock():
         code_list = []
         self.fetcher.request.go_to('http://www.twse.com.tw/zh/stockSearch/stockSearch')
         codes = self.fetcher.request.find_elements('//table[@class="grid"]//a/text()')
-        code = namedtuple('code', 'stock_id stock_name')
+        stock_code = namedtuple('stock_code', 'id name')
         for code in codes:
-            code.stock_id = code[0]
-            code.stock_name = code[1]
-            code_list.append([code[0:4], code[4:]])
+            stock_code.id = code[0]
+            stock_code.name = code[1]
+            code_list.append(stock_code)
         return code_list
 
     def __get_basic_info(self, stock_id: str) -> list:
