@@ -106,7 +106,7 @@ class ClsTaiwanStock():
             options.append(option_tag.text)
         return options
 
-    def __get_seasons(self) -> list:
+    def __get_seasons(self, top_n_seasons_count: int = 0) -> list:
         def get_mapping(month) -> dict:
             mapping = {
                 '1': '1',
@@ -129,14 +129,18 @@ class ClsTaiwanStock():
         current_year = str(datetime.datetime.now().year)
         current_season = get_mapping(str(datetime.datetime.now().month))
         seasons = []
+        index = 0
         for year in reversed(years):
             for season in reversed(['1', '2', '3', '4']):
                 if str(year + season) >= str(current_year + current_season):
                     continue
+                index += 1
+                if top_n_seasons_count != 0 and index > top_n_seasons_count:
+                    return seasons
                 seasons.append([year, season])
         return seasons
 
-    def get_table(self, stock_id: str, top_n_seasons_count: int = 0) -> list:
+    def get_table(self, stock_id: str, seasons: list) -> list:
         """取得表格內容
 
             Arguments:
@@ -146,12 +150,7 @@ class ClsTaiwanStock():
             Returns:
                 {list} -- 表格內容
         """
-        seasons = self.__get_seasons()
-
-        for index, season in enumerate(seasons, start=1):
-            if top_n_seasons_count != 0:
-                if index > top_n_seasons_count:
-                    break
+        for season in seasons:
             self.fetcher.request.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock_id, season[0], season[1]))
             row_tags = self.fetcher.request.find_elements('//table[@class="result_table hasBorder"]//tr[not(th)]')
             records = []
@@ -161,13 +160,10 @@ class ClsTaiwanStock():
                 for cell_tag in cell_tags:
                     record.append(cell_tag.text)
                 records.append(record)
-            # TODO 寫入EXCEL
-
-        return seasons
+        return records
 
     def get_statment_files(self, stock_list):
-        seasons = self.__get_seasons()
-        # TODO [x[1] for x in a]
+        seasons = self.__get_seasons(0)
 
         for stock in stock_list:
             book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_資產負債表' + '.xlsx'
