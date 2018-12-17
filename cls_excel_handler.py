@@ -5,6 +5,7 @@ from collections import namedtuple
 import PySimpleGUI as gui
 import tempfile
 from typing import Union
+from openpyxl import load_workbook
 
 
 class ClsExcelHandler():
@@ -25,7 +26,7 @@ class ClsExcelHandler():
         else:
             self.sheet.append(values)
 
-    def create_books_path(self, books_path: str):
+    def create_books_directory(self, books_path: str):
         self.books_path = books_path
         if not os.path.exists(self.books_path):
             os.makedirs(self.books_path)
@@ -48,3 +49,19 @@ class ClsExcelHandler():
 
     def close_config_form(self):
         self.form.close()
+
+    def open_book(self, book_path):
+        self.book = load_workbook(book_path)
+        self.sheet = self.book.active
+
+    def is_sheet_existed(self, sheet_name):
+        if sheet_name in self.book.sheetnames:
+            return True
+        else:
+            return False
+
+    def add_sheet(self, sheet_name):
+        self.book.create_sheet(sheet_name)
+
+    def open_sheet(self, sheet_name):
+        self.book.active = self.book.worksheets.index(self.get_sheet_by_name(sheet_name))

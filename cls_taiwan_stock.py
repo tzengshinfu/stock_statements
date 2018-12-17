@@ -18,41 +18,41 @@ class ClsTaiwanStock():
     def get_financial_statement_files(self):
         result = self.excel.show_config_form()
         if result.action == 'Submit':
-            self.excel.create_books_path(result.drive_letter + '\\' + result.directory_name)
-            code_list = self.get_code_list()
-            self.get_basic_info_files(code_list)
-            self.get_statment_files(code_list)
+            self.excel.create_books_directory(result.drive_letter + '\\' + result.directory_name)
+            stock_list = self.get_stock_list()
+            self.get_basic_info_files(stock_list)
+            self.get_statment_files(stock_list)
             self.excel.show_popup('建立完成。')
             self.excel.close_config_form()
         else:
             self.excel.show_popup('取消建立!')
             self.excel.close_config_form()
 
-    def get_basic_info_files(self, code_list: list):
-        for code in code_list:
-            book_path = self.excel.books_path + '\\' + code.id + '(' + code.name + ')' + '.xlsx'
+    def get_basic_info_files(self, stock_list: list):
+        for stock in stock_list:
+            book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')' + '.xlsx'
             if not self.excel.is_book_existed(book_path):
                 self.excel.add_book()
-                basic_info = self.__get_basic_info(code.id)
+                basic_info = self.__get_basic_info(stock.id)
                 self.excel.write_to_sheet(basic_info)
                 self.excel.save_book(book_path)
                 time.sleep(random.randint(2, 7))
 
-    def get_code_list(self) -> list:
+    def get_stock_list(self) -> list:
         """取得台股上巿股票代號/名稱列表
 
             Returns:
                 {list} -- 股票代號/名稱列表
         """
-        code_list = []
+        stock_list = []
         self.fetcher.request.go_to('http://www.twse.com.tw/zh/stockSearch/stockSearch')
-        codes = self.fetcher.request.find_elements('//table[@class="grid"]//a/text()')
-        stock_code = namedtuple('stock_code', 'id name')
-        for code in codes:
-            stock_code.id = code[0]
-            stock_code.name = code[1]
-            code_list.append(stock_code)
-        return code_list
+        stock_datas = self.fetcher.request.find_elements('//table[@class="grid"]//a/text()')
+        stock = namedtuple('stock', 'id name')
+        for stock_data in stock_datas:
+            stock.id = stock_data[0]
+            stock.name = stock_data[1]
+            stock_list.append(stock)
+        return stock_list
 
     def __get_basic_info(self, stock_id: str) -> list:
         """取得台股上巿股票基本資料
@@ -165,14 +165,28 @@ class ClsTaiwanStock():
 
         return seasons
 
-    def get_statment_files(self, code_list):
-        for code in code_list:
-            if not self.excel.is_book_existed(code[0], code[1]):
+    def get_statment_files(self, stock_list):
+        seasons = self.__get_seasons()
+        # TODO [x[1] for x in a]
+
+        for stock in stock_list:
+            book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_資產負債表' + '.xlsx'
+            if not self.excel.is_book_existed(book_path):
+                self.excel.add_book(book_path)
+                for season in seasons:
+                    self.excel.add_sheet(season)
                 # TODO 開啟活頁簿
                 # TODO 檢查SEASON
                 # TODO 開啟工作表
                 # TODO 寫入excel
                 pass
+            else:
+                self.excel.open_book(book_path)
+                for season in seasons:
+                    if not self.excel.is_sheet_existed(season):
+                        self.excel.add_sheet(season)
+                    else:
+                        self.excel.open_sheet(season)
 
     def __convert_to_list(self, original_dict: dict)->list:
         converted_list = []
