@@ -171,18 +171,19 @@ class ClsTaiwanStock():
                 self.excel.add_book(book_path)
                 for season in seasons:
                     self.excel.add_sheet(season)
-                # TODO 開啟活頁簿
-                # TODO 檢查SEASON
-                # TODO 開啟工作表
-                # TODO 寫入excel
-                pass
+                    table = self.get_table()
+                    self.excel.write_to_sheet(table)
             else:
                 self.excel.open_book(book_path)
                 for season in seasons:
                     if not self.excel.is_sheet_existed(season):
                         self.excel.add_sheet(season)
+                        table = self.get_table()
+                        self.excel.write_to_sheet(table)
                     else:
                         self.excel.open_sheet(season)
+                        table = self.get_table()
+                        self.excel.write_to_sheet(table)
 
     def __convert_to_list(self, original_dict: dict)->list:
         converted_list = []
