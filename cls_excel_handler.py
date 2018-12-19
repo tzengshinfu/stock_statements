@@ -12,7 +12,7 @@ class ClsExcelHandler():
     def __init__(self):
         self.books_path = tempfile.gettempdir()
 
-    def add_book(self):
+    def __add_book(self):
         self.book = Workbook()
         self.sheet = self.book.active
 
@@ -26,13 +26,10 @@ class ClsExcelHandler():
         else:
             self.sheet.append(values)
 
-    def create_books_directory(self, books_path: str):
+    def open_books_directory(self, books_path: str):
+        if not os.path.exists(books_path):
+            os.makedirs(books_path)
         self.books_path = books_path
-        if not os.path.exists(self.books_path):
-            os.makedirs(self.books_path)
-
-    def is_book_existed(self, book_path: str):
-        return os.path.exists(book_path)
 
     def show_config_form(self) -> namedtuple:
         self.form = gui.FlexForm('設定台股上巿股票Excel存放路徑')
@@ -50,18 +47,25 @@ class ClsExcelHandler():
     def close_config_form(self):
         self.form.close()
 
-    def open_book(self, book_path):
+    def open_book(self, book_path: str):
+        if not os.path.exists(book_path):
+            self.__add_book(book_path)
         self.book = load_workbook(book_path)
         self.sheet = self.book.active
 
-    def is_sheet_existed(self, sheet_name):
+    def __add_sheet(self, sheet_name: str):
+        self.book.create_sheet(sheet_name)
+
+    def open_sheet(self, sheet_name: str):
+        if sheet_name not in self.book.sheetnames:
+            self.__add_sheet(sheet_name)
+        self.book.active = self.book.worksheets.index(self.get_sheet_by_name(sheet_name))
+
+    def is_book_existed(self, book_path: str) -> bool:
+        return os.path.exists(book_path)
+
+    def is_sheet_existed(self, sheet_name: str) -> bool:
         if sheet_name in self.book.sheetnames:
             return True
         else:
             return False
-
-    def add_sheet(self, sheet_name):
-        self.book.create_sheet(sheet_name)
-
-    def open_sheet(self, sheet_name):
-        self.book.active = self.book.worksheets.index(self.get_sheet_by_name(sheet_name))
