@@ -5,8 +5,6 @@ from collections import namedtuple
 
 
 # TODO 財務附註 http://mops.twse.com.tw/server-java/t164sb01
-# http://mops.twse.com.tw/server-java/t164sb01
-# http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID=1101&SYEAR=2018&SSEASON=3&REPORT_ID=C
 # http://mops.twse.com.tw/mops/web/t05st22_q1
 # EPS改用程式計算
 class ClsTaiwanStock():
