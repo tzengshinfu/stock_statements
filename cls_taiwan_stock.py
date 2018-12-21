@@ -189,6 +189,8 @@ class ClsTaiwanStock():
     def get_analysis_files(self, stock_list):
         pass
 
-    # TODO EPS改用程式計算
-    def get_eps_files(self, stock_list):
+    # TODO http://mops.twse.com.tw/mops/web/t05st09
+    def get_yield_files(self, stock_list):
         pass
+
+    # TODO 平均銷貨日數/平均收現日數
