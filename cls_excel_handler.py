@@ -48,7 +48,7 @@ class ClsExcelHandler():
         self.form.close()
 
     def open_book(self, book_path: str):
-        if not os.path.exists(book_path):
+        if not self.is_book_existed():
             self.__add_book(book_path)
         self.book = load_workbook(book_path)
         self.sheet = self.book.active
@@ -57,7 +57,7 @@ class ClsExcelHandler():
         self.book.create_sheet(sheet_name)
 
     def open_sheet(self, sheet_name: str):
-        if sheet_name not in self.book.sheetnames:
+        if not self.is_sheet_existed():
             self.__add_sheet(sheet_name)
         self.book.active = self.book.worksheets.index(self.get_sheet_by_name(sheet_name))
 

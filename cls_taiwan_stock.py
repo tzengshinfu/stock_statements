@@ -4,9 +4,6 @@ import datetime
 from collections import namedtuple
 
 
-# TODO 財務附註 http://mops.twse.com.tw/server-java/t164sb01
-# http://mops.twse.com.tw/mops/web/t05st22_q1
-# EPS改用程式計算
 class ClsTaiwanStock():
     fetcher = ClsWebpageFetcher()
     excel = ClsExcelHandler()
@@ -18,6 +15,8 @@ class ClsTaiwanStock():
             stock_list = self.get_stock_list()
             self.get_basic_info_files(stock_list)
             self.get_statment_files(stock_list)
+            self.get_analysis_files(stock_list)
+            self.get_eps_files(stock_list)
             self.excel.show_popup('建立完成。')
             self.excel.close_config_form()
         else:
@@ -26,7 +25,7 @@ class ClsTaiwanStock():
 
     def get_basic_info_files(self, stock_list: list):
         for stock in stock_list:
-            book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')' + '.xlsx'
+            book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_基本資料' + '.xlsx'
             if not self.excel.is_book_existed(book_path):
                 self.excel.open_book(book_path)
                 self.fetcher.wait(2, 7)
@@ -137,14 +136,16 @@ class ClsTaiwanStock():
 
         if table_type == '資產負債表':
             item_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
-        elif table_type == '損益表':
-            item_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
-        elif table_type == '股東權益表':
-            item_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
+        elif table_type == '總合損益表':
+            item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
         elif table_type == '現金流量表':
-            item_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
+            item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+        elif table_type == '股東權益表':
+            item_xpath = '//table[@class="result_table1 hasBorder"]//tr[not(th)]'
+        elif table_type == '財務備註':
+            item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
         else:
-            raise ValueError('類型只能是[資產負債表/損益表/股東權益表/現金流量表]其中之一')
+            raise ValueError('類型只能是[資產負債表/總合損益表/股東權益表/現金流量表/財務備註]其中之一')
 
         row_tags = self.fetcher.find_elements(item_xpath)
         records = []
@@ -163,9 +164,10 @@ class ClsTaiwanStock():
             self.fetcher.wait(2, 7)
             self.fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock_id, season[0], season[1]))
             self.get_xx(stock, periods, '資產負債表')
-            self.get_xx(stock, periods, '損益表')
+            self.get_xx(stock, periods, '總合損益表')
             self.get_xx(stock, periods, '股東權益表')
             self.get_xx(stock, periods, '現金流量表')
+            self.get_xx(stock, periods, '財務備註')
 
     def get_xx(self, stock, periods, table_type: str):
         financial_position_book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
@@ -182,3 +184,11 @@ class ClsTaiwanStock():
         for key, value in original_dict.items():
             converted_list.append([key, value])
         return converted_list
+
+    # TODO 財務分析http://mops.twse.com.tw/mops/web/t05st22_q1
+    def get_analysis_files(self, stock_list):
+        pass
+
+    # TODO EPS改用程式計算
+    def get_eps_files(self, stock_list):
+        pass
