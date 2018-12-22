@@ -28,7 +28,7 @@ class ClsTaiwanStockTest(unittest.TestCase):
         self.stock.get_basic_info_files()
 
     def test_get_table(self):
-        self.stock.get_table('1101', 2)
+        self.stock.__get_statment_table('1101', 2)
 
     def test_setExcelPath(self):
         self.stock.set_excel_path()

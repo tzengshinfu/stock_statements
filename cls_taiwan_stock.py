@@ -123,7 +123,7 @@ class ClsTaiwanStock():
                 periods.append(period)
         return periods
 
-    def get_table(self, table_type: str) -> list:
+    def __get_statment_table(self, table_type: str) -> list:
         """取得表格內容
 
             Arguments:
@@ -158,26 +158,26 @@ class ClsTaiwanStock():
         return records
 
     def get_statment_files(self, stock_list):
-        periods = self.__get_periods(0)
-
-        for stock in stock_list:
-            self.fetcher.wait(2, 7)
-            self.fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock_id, season[0], season[1]))
-            self.get_xx(stock, periods, '資產負債表')
-            self.get_xx(stock, periods, '總合損益表')
-            self.get_xx(stock, periods, '股東權益表')
-            self.get_xx(stock, periods, '現金流量表')
-            self.get_xx(stock, periods, '財務備註')
-
-    def get_xx(self, stock, periods, table_type: str):
-        financial_position_book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
-        self.excel.open_book(financial_position_book_path)
-        for period in periods:
+        def get_statment_file(stock: namedtuple, period: namedtuple, table_type: str):
+            book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
+            self.excel.open_book(book_path)
             sheet_name = period.year + '_' + period.season
             if not self.excel.is_sheet_existed(sheet_name):
                 self.excel.open_sheet(sheet_name)
-                table = self.get_table(table_type)
+                table = self.__get_statment_table(table_type)
                 self.excel.write_to_sheet(table)
+            self.excel.save_book(book_path)
+        periods = self.__get_periods(0)
+
+        for stock in stock_list:
+            for period in periods:
+                self.fetcher.wait(2, 7)
+                self.fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.year, period.season))
+                self.get_statment_file(stock, period, '資產負債表')
+                self.get_statment_file(stock, period, '總合損益表')
+                self.get_statment_file(stock, period, '股東權益表')
+                self.get_statment_file(stock, period, '現金流量表')
+                self.get_statment_file(stock, period, '財務備註')
 
     def __convert_to_list(self, original_dict: dict)->list:
         converted_list = []
@@ -185,12 +185,12 @@ class ClsTaiwanStock():
             converted_list.append([key, value])
         return converted_list
 
-    # TODO 財務分析http://mops.twse.com.tw/mops/web/t05st22_q1
+    # TODO 財務分析
     def get_analysis_files(self, stock_list):
-        pass
+        self.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year=&isnew=true&co_id=1101&firstin=1&off=1&ifrs=Y')
+        print(self.fetcher.response)
 
-    # TODO http://mops.twse.com.tw/mops/web/t05st09
+    # TODO 股利分派情形-經股東會確認
     def get_yield_files(self, stock_list):
-        pass
-
-    # TODO 平均銷貨日數/平均收現日數
+        self.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id=1101&year=')
+        print(self.fetcher.response)
