@@ -36,8 +36,11 @@ class ClsTaiwanStockTest(unittest.TestCase):
     def test_get_financial_statement_files(self):
         self.stock.get_financial_statement_files()
 
+    def test_get_analysis_files(self):
+        self.stock.get_analysis_files()
+
 
 if __name__ == '__main__':
-    tests = ['test_get_table']
+    tests = ['test_get_analysis_files']
     suite = unittest.TestSuite(map(ClsTaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
