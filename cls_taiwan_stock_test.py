@@ -37,7 +37,8 @@ class ClsTaiwanStockTest(unittest.TestCase):
         self.stock.get_financial_statement_files()
 
     def test_get_analysis_files(self):
-        self.stock.get_analysis_files()
+        stock_list = []
+        self.stock.get_analysis_files(stock_list)
 
 
 if __name__ == '__main__':
