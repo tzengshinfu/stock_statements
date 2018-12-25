@@ -187,10 +187,10 @@ class ClsTaiwanStock():
 
     # TODO 財務分析
     def get_analysis_files(self, stock_list):
-        self.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year=&isnew=true&co_id=1101&firstin=1&off=1&ifrs=Y')
+        self.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year=&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y')
         print(self.fetcher.response)
 
     # TODO 股利分派情形-經股東會確認
     def get_dividend_files(self, stock_list):
-        self.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id=1101&year=')
+        self.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year=')
         print(self.fetcher.response)
