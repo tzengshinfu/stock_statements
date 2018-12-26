@@ -1,5 +1,6 @@
 import unittest
 from cls_taiwan_stock import ClsTaiwanStock
+from collections import namedtuple
 
 
 class ClsTaiwanStockTest(unittest.TestCase):
@@ -38,7 +39,20 @@ class ClsTaiwanStockTest(unittest.TestCase):
 
     def test_get_analysis_files(self):
         stock_list = []
-        self.stock.get_analysis_files(stock_list)
+        stock = namedtuple('stock', 'id name')
+        stock.id = '1101'
+        stock.name = '亞泥'
+        stock_list.append(stock)
+        periods = []
+        period = namedtuple('period', 'year season')
+        period.year = '2018'
+        period.season = '1'
+        periods.append(period)
+
+        for stock in stock_list:
+            for period in periods:
+                self.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
+                print(self.fetcher.response)
 
 
 if __name__ == '__main__':
