@@ -42,7 +42,7 @@ class ClsTaiwanStock():
         stock_list = []
         self.fetcher.go_to('http://www.twse.com.tw/zh/stockSearch/stockSearch')
         stock_datas = self.fetcher.find_elements('//table[@class="grid"]//a/text()')
-        stock = namedtuple('stock', 'id name')
+        stock = namedtuple('stock', ['id', 'name'])
         for stock_data in stock_datas:
             stock.id = stock_data[0]
             stock.name = stock_data[1]
@@ -109,7 +109,7 @@ class ClsTaiwanStock():
         current_year = str(datetime.datetime.now().year)
         current_season = get_season(str(datetime.datetime.now().month))
         periods = []
-        period = namedtuple('period', 'year season')
+        period = namedtuple('period', ['year', 'season'])
         index = 0
         for year in reversed(years):
             for season in reversed(['1', '2', '3', '4']):
