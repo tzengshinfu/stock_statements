@@ -56,7 +56,7 @@ class ClsTaiwanStockTest(unittest.TestCase):
         for stock in self.stock_list:
             for period in self.periods:
                 self.stock.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
-                print(self.fetcher.find_elements('//table[@class="hasBorder"]//tr]'))
+                print(self.stock.fetcher.find_elements('//table[@class="hasBorder"]//tr'))
 
 
 if __name__ == '__main__':
