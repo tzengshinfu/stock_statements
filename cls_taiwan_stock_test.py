@@ -1,6 +1,6 @@
 import unittest
 from cls_taiwan_stock import ClsTaiwanStock
-from collections import namedtuple
+import typing
 
 
 class ClsTaiwanStockTest(unittest.TestCase):
@@ -11,11 +11,20 @@ class ClsTaiwanStockTest(unittest.TestCase):
         unittest.TestCase.__init__(self, *args, **kwargs)
 
     @classmethod
-    def setUpClass(cls):
-        pass
+    def setUpClass(self):
+        self.stock_list = []
+        stock = typing.NamedTuple('stock', [('id', str), ('name', str)])
+        stock.id = '1101'
+        stock.name = '亞泥'
+        self.stock_list.append(stock)
+        self.periods = []
+        period = typing.NamedTuple('period', [('year', str), ('season', str)])
+        period.year = '2018'
+        period.season = '1'
+        self.periods.append(period)
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(self):
         pass
 
     def setUp(self):
@@ -38,24 +47,19 @@ class ClsTaiwanStockTest(unittest.TestCase):
         self.stock.get_financial_statement_files()
 
     def test_get_analysis_files(self):
-        stock_list = []
-        stock = namedtuple('stock', ['id', 'name'])
-        stock.id = '1101'
-        stock.name = '亞泥'
-        stock_list.append(stock)
-        periods = []
-        period = namedtuple('period', ['year', 'season'])
-        period.year = '2018'
-        period.season = '1'
-        periods.append(period)
-
-        for stock in stock_list:
-            for period in periods:
+        for stock in self.stock_list:
+            for period in self.periods:
                 self.stock.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
                 print(self.stock.fetcher.response)
 
+    def test_get_dividend_files(self):
+        for stock in self.stock_list:
+            for period in self.periods:
+                self.stock.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
+                print(self.fetcher.find_elements('//table[@class="hasBorder"]//tr]'))
+
 
 if __name__ == '__main__':
-    tests = ['test_get_analysis_files']
+    tests = ['test_get_dividend_files']
     suite = unittest.TestSuite(map(ClsTaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

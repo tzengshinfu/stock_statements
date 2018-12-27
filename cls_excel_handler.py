@@ -5,6 +5,7 @@ from collections import namedtuple
 import PySimpleGUI as gui
 import tempfile
 from typing import Union
+import typing
 from openpyxl import load_workbook
 
 
@@ -34,7 +35,7 @@ class ClsExcelHandler():
     def show_config_form(self) -> namedtuple:
         self.form = gui.FlexForm('設定台股上巿股票Excel存放路徑')
         layout = [[self.gui.Text('請輸入下載Excel存放的磁碟代號及目錄名')], [self.gui.Text('Drive', size=(15, 1)), self.gui.InputText('Z')], [self.gui.Text('Folder', size=(15, 1)), self.gui.InputText('Excel')], [self.gui.Submit(), self.gui.Cancel()]]
-        result = namedtuple('result', 'action drive_letter directory_name')
+        result = typing.NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str)])
         return_values = self.form.Layout(layout).Read()
         result.action = return_values[0]
         result.drive_letter = return_values[1][0]

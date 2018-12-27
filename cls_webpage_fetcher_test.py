@@ -10,11 +10,11 @@ class ClsWebpageFetcherTest(unittest.TestCase):
         unittest.TestCase.__init__(self, *args, **kwargs)
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(self):
         pass
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(self):
         pass
 
     def setUp(self):

@@ -1,7 +1,7 @@
 from cls_webpage_fetcher import ClsWebpageFetcher
 from cls_excel_handler import ClsExcelHandler
 import datetime
-from collections import namedtuple
+import typing
 
 
 class ClsTaiwanStock():
@@ -16,7 +16,7 @@ class ClsTaiwanStock():
             self.get_basic_info_files(stock_list)
             self.get_statment_files(stock_list)
             self.get_analysis_files(stock_list)
-            self.get_eps_files(stock_list)
+            self.get_dividend_files(stock_list)
             self.excel.show_popup('建立完成。')
             self.excel.close_config_form()
         else:
@@ -24,6 +24,11 @@ class ClsTaiwanStock():
             self.excel.close_config_form()
 
     def get_basic_info_files(self, stock_list: list):
+        """取得台股上巿股票基本資料檔案
+
+            Arguments:
+                stock_list {list} -- 股票代號/名稱列表
+        """
         for stock in stock_list:
             book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_基本資料' + '.xlsx'
             if not self.excel.is_book_existed(book_path):
@@ -42,7 +47,7 @@ class ClsTaiwanStock():
         stock_list = []
         self.fetcher.go_to('http://www.twse.com.tw/zh/stockSearch/stockSearch')
         stock_datas = self.fetcher.find_elements('//table[@class="grid"]//a/text()')
-        stock = namedtuple('stock', ['id', 'name'])
+        stock = typing.NamedTuple('stock', [('id', str), ('name', str)])
         for stock_data in stock_datas:
             stock.id = stock_data[0]
             stock.name = stock_data[1]
@@ -109,7 +114,7 @@ class ClsTaiwanStock():
         current_year = str(datetime.datetime.now().year)
         current_season = get_season(str(datetime.datetime.now().month))
         periods = []
-        period = namedtuple('period', ['year', 'season'])
+        period = typing.NamedTuple('period', [('year', str), ('season', str)])
         index = 0
         for year in reversed(years):
             for season in reversed(['1', '2', '3', '4']):
@@ -158,7 +163,7 @@ class ClsTaiwanStock():
         return records
 
     def get_statment_files(self, stock_list):
-        def get_statment_file(stock: namedtuple, period: namedtuple, table_type: str):
+        def get_statment_file(stock: typing.Namedtuple, period: typing.Namedtuple, table_type: str):
             book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
             self.excel.open_book(book_path)
             sheet_name = period.year + '_' + period.season
@@ -199,4 +204,4 @@ class ClsTaiwanStock():
         for stock in stock_list:
             for period in periods:
                 self.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year))
-                print(self.fetcher.response)
+                print(self.fetcher.find_elements('//table[@class="hasBorder"]//tr]'))
