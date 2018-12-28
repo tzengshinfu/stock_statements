@@ -28,15 +28,11 @@ class ClsWebpageFetcherTest(unittest.TestCase):
         self.fetcher.go_to('https://www.google.com')
 
     def test_download_file(self):
-        pdf_path = self.fetcher.download_file(
-            'http://doc.twse.com.tw/pdf/201801_1101_AI1_20181108_084034.pdf')
+        pdf_path = self.fetcher.download_file('http://doc.twse.com.tw/pdf/201801_1101_AI1_20181108_084034.pdf')
         self.assertEqual(pdf_path, 'D:\\Temp\\201801_1101_AI1_20181108_084034.pdf')
 
     def test_find_elements(self):
-        self.fetcher.request.go_to(
-            'http://mops.twse.com.tw/mops/web/t05st03',
-            'post',
-            'firstin=1&co_id=' + '1101')
+        self.fetcher.request.go_to('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + '1101')
         trs = self.fetcher.request.find_elements('//table[@class="hasBorder"]//tr')
         for tr in trs:
             print(tr.value)
