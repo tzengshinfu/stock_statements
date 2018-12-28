@@ -1,10 +1,14 @@
 import unittest
 from cls_taiwan_stock import ClsTaiwanStock
+from cls_excel_handler import ClsExcelHandler
+from cls_webpage_fetcher import ClsWebpageFetcher
 import typing
 
 
 class ClsTaiwanStockTest(unittest.TestCase):
     stock = ClsTaiwanStock()
+    fetcher = ClsWebpageFetcher()
+    excel = ClsExcelHandler()
 
     # region 初始方法
     def __init__(self, *args, **kwargs):
@@ -55,8 +59,10 @@ class ClsTaiwanStockTest(unittest.TestCase):
     def test_get_dividend_files(self):
         for stock in self.stock_list:
             for period in self.periods:
-                self.stock.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
-                print(self.stock.fetcher.find_elements('//table[@class="hasBorder"]//tr'))
+                self.stock.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year))
+                dividend_info = self.fetcher.find_elements('//table[@class="hasBorder"]//tr]')
+                self.excel.write_to_sheet(dividend_info)
+                self.excel.save_book('D:\\Desktop\\a.xlsx')
 
 
 if __name__ == '__main__':
