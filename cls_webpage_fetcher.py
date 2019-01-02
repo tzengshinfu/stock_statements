@@ -52,6 +52,14 @@ class ClsWebpageFetcher():
             raise ValueError('方法只能是[get/post/download]其中之一')
 
     def download_file(self, url: str) -> str:
+        """下載檔案
+
+            Arguments:
+                url {str} -- 檔案所在URL
+
+            Returns:
+                str -- 下載後的本機路徑
+        """
         file_path = self.tempdir_path + '\\' + url.split('/')[-1]
         self.go_to(url, 'download')
         with open(file_path, 'wb') as stream:
@@ -67,5 +75,11 @@ class ClsWebpageFetcher():
     def find_elements(self, elements_xpath: str) ->etree:
         return self.find_element(elements_xpath)
 
-    def wait(self, at_least_seconds, at_most_seconds):
+    def wait(self, at_least_seconds: int, at_most_seconds: int):
+        """暫停隨機秒數
+
+            Arguments:
+                at_least_seconds {int} -- 至少暫停秒數
+                at_most_seconds {int} -- 最多暫停秒數
+        """
         time.sleep(random.randint(at_least_seconds, at_most_seconds))
