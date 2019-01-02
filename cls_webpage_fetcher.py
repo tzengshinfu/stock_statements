@@ -69,10 +69,26 @@ class ClsWebpageFetcher():
         return file_path
 
     def find_element(self, element_xpath: str) -> etree:
+        """尋找網頁元素
+
+            Arguments:
+                element_xpath {str} -- XPATH條件
+
+            Returns:
+                etree -- 網頁元素
+        """
         element = self.tree.xpath(element_xpath)
         return element
 
     def find_elements(self, elements_xpath: str) ->etree:
+        """尋找網頁元素
+
+            Arguments:
+                element_xpath {str} -- XPATH條件
+
+            Returns:
+                etree -- 網頁元素
+        """
         return self.find_element(elements_xpath)
 
     def wait(self, at_least_seconds: int, at_most_seconds: int):

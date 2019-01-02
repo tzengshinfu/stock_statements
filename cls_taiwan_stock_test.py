@@ -58,7 +58,7 @@ class ClsTaiwanStockTest(unittest.TestCase):
         for stock in self.stock_list:
             for period in self.periods:
                 self.stock.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year))
-                dividend_info = self.stock.fetcher.find_elements('//table[@class="hasBorder"]//tr]')
+                dividend_info = self.stock.fetcher.find_elements('//table[@class="hasBorder"]//tr')
                 self.excel.write_to_sheet(dividend_info)
                 self.excel.save_book('D:\\Desktop\\a.xlsx')
 
