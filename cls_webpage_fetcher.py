@@ -4,6 +4,7 @@ from lxml import etree
 from retry import retry
 import time
 import random
+from typing import List
 
 
 class ClsWebpageFetcher():
@@ -68,7 +69,7 @@ class ClsWebpageFetcher():
                     stream.write(chunk)
         return file_path
 
-    def find_element(self, element_xpath: str) -> etree:
+    def find_element(self, element_xpath: str) -> List[etree._Element]:
         """尋找網頁元素
 
             Arguments:
@@ -80,7 +81,7 @@ class ClsWebpageFetcher():
         element = self.tree.xpath(element_xpath)
         return element
 
-    def find_elements(self, elements_xpath: str) ->etree:
+    def find_elements(self, elements_xpath: str) -> List[etree._Element]:
         """尋找網頁元素
 
             Arguments:
