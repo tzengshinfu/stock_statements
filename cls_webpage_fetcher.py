@@ -70,7 +70,7 @@ class ClsWebpageFetcher():
         return file_path
 
     def find_element(self, element_xpath: str) -> List[etree._Element]:
-        """尋找網頁元素
+        """尋找符合條件的第1個網頁元素
 
             Arguments:
                 element_xpath {str} -- XPATH條件
@@ -78,11 +78,11 @@ class ClsWebpageFetcher():
             Returns:
                 etree -- 網頁元素
         """
-        element = self.tree.xpath(element_xpath)
-        return element
+        elements = self.find_elements(element_xpath)
+        return next(iter(elements or []), None)
 
     def find_elements(self, elements_xpath: str) -> List[etree._Element]:
-        """尋找網頁元素
+        """尋找符合條件的網頁元素集合
 
             Arguments:
                 element_xpath {str} -- XPATH條件
@@ -90,7 +90,8 @@ class ClsWebpageFetcher():
             Returns:
                 etree -- 網頁元素
         """
-        return self.find_element(elements_xpath)
+        elements = self.tree.xpath(elements_xpath)
+        return elements
 
     def wait(self, at_least_seconds: int, at_most_seconds: int):
         """暫停隨機秒數
@@ -100,3 +101,12 @@ class ClsWebpageFetcher():
                 at_most_seconds {int} -- 最多暫停秒數
         """
         time.sleep(random.randint(at_least_seconds, at_most_seconds))
+
+    def to_list(self, table: etree._Element) -> List[str]:
+        records = []
+        for row in table:
+            record = []
+            for cell in row:
+                record.append(cell.text)
+            records.append(record)
+        return records

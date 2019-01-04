@@ -32,14 +32,20 @@ class ClsWebpageFetcherTest(unittest.TestCase):
         self.assertEqual(pdf_path, 'D:\\Temp\\201801_1101_AI1_20181108_084034.pdf')
 
     def test_find_elements(self):
-        self.fetcher.request.go_to('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + '1101')
-        trs = self.fetcher.request.find_elements('//table[@class="hasBorder"]//tr')
+        self.fetcher.go_to('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + '1101')
+        trs = self.fetcher.find_elements('//table[@class="hasBorder"]//tr')
         for tr in trs:
             print(tr.value)
         pass
 
+    def test_to_list(self):
+        self.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format('1101', '2018'))
+        table = self.fetcher.find_element('//table[@class="hasBorder"]')
+        a = self.fetcher.to_list(table)
+
+
 
 if __name__ == '__main__':
-    tests = ['test_download_file']
+    tests = ['test_to_list']
     suite = unittest.TestSuite(map(ClsWebpageFetcherTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

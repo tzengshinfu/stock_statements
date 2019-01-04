@@ -13,6 +13,7 @@ class ClsExcelHandler():
         self.books_path = tempfile.gettempdir()
 
     def __add_book(self):
+        """新增活頁簿"""
         self.book = Workbook()
         self.sheet = self.book.active
 
@@ -79,12 +80,18 @@ class ClsExcelHandler():
             Arguments:
                 book_path {str} -- 本機路徑
         """
-        if not self.is_book_existed():
-            self.__add_book(book_path)
-        self.book = load_workbook(book_path)
-        self.sheet = self.book.active
+        if not self.is_book_existed(book_path):
+            self.__add_book()
+        else:
+            self.book = load_workbook(book_path)
+            self.sheet = self.book.active
 
     def __add_sheet(self, sheet_name: str):
+        """新增工作表
+
+            Arguments:
+                sheet_name {str} -- 工作表名稱
+        """
         self.book.create_sheet(sheet_name)
 
     def open_sheet(self, sheet_name: str):
