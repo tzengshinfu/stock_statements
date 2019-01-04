@@ -101,12 +101,3 @@ class ClsWebpageFetcher():
                 at_most_seconds {int} -- 最多暫停秒數
         """
         time.sleep(random.randint(at_least_seconds, at_most_seconds))
-
-    def to_list(self, table: etree._Element) -> List[str]:
-        records = []
-        for row in table:
-            record = []
-            for cell in row:
-                record.append(cell.text)
-            records.append(record)
-        return records

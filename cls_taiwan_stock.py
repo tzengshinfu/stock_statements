@@ -88,7 +88,7 @@ class ClsTaiwanStock():
                     else:
                         if (cell.tag == 'td'):
                             basic_info[title] = cell.text.strip()
-        basic_info_list = self.__convert_to_list(basic_info)
+        basic_info_list = self.__to_list(basic_info)
         return basic_info_list
 
     def __get_periods(self, top_n_seasons_count: int = 0) -> list:
@@ -184,7 +184,7 @@ class ClsTaiwanStock():
                 self.get_statment_file(stock, period, '現金流量表')
                 self.get_statment_file(stock, period, '財務備註')
 
-    def __convert_to_list(self, original_dict: dict)->list:
+    def __to_list(self, original_dict: dict)->list:
         converted_list = []
         for key, value in original_dict.items():
             converted_list.append([key, value])
@@ -208,3 +208,12 @@ class ClsTaiwanStock():
 
                 self.excel.write_to_sheet(row_tags)
                 self.excel.save_book('D:\\Desktop\\a.xlsx')
+
+    def __to_list(self, table: etree._Element) -> List[str]:
+        records = []
+        for row in table:
+            record = []
+            for cell in row:
+                record.append(cell.text)
+            records.append(record)
+        return records
