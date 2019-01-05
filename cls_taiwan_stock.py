@@ -26,11 +26,11 @@ class ClsTaiwanStock():
             self.excel.show_popup('取消建立!')
             self.excel.close_config_form()
 
-    def get_basic_info_files(self, stock_list: List):
+    def get_basic_info_files(self, stock_list: List[typing.NamedTuple('stock', [('id', str), ('name', str)])]):
         """取得台股上巿股票基本資料檔案
 
             Arguments:
-                stock_list {list} -- 股票代號/名稱列表
+                stock_list {List[typing.NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
         """
         for stock in stock_list:
             book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_基本資料' + '.xlsx'
@@ -41,11 +41,11 @@ class ClsTaiwanStock():
                 self.excel.write_to_sheet(basic_info)
                 self.excel.save_book(book_path)
 
-    def get_stock_list(self) -> List[typing.NamedTuple]:
+    def get_stock_list(self) -> List[typing.NamedTuple('stock', [('id', str), ('name', str)])]:
         """取得台股上巿股票代號/名稱列表
 
             Returns:
-                {list} -- 股票代號/名稱列表
+                {List[typing.NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
         """
         stock_list = []
         self.fetcher.go_to('http://www.twse.com.tw/zh/stockSearch/stockSearch')
@@ -131,15 +131,14 @@ class ClsTaiwanStock():
                 periods.append(period)
         return periods
 
-    def __get_statment_table(self, table_type: str) -> List:
+    def __get_statment_table(self, table_type: str) -> List[str]:
         """取得表格內容
 
             Arguments:
-                stock_id {str} -- 股票代碼
-                top_n_seasons_count {int} -- 取得前n季(0=全部)
+                table_type {str} -- 股票代碼
 
             Returns:
-                {list} -- 表格內容
+                {List[str]} -- 表格內容
         """
         if table_type == '資產負債表':
             item_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
@@ -164,7 +163,12 @@ class ClsTaiwanStock():
             records.append(record)
         return records
 
-    def get_statment_files(self, stock_list: List):
+    def get_statment_files(self, stock_list: List[typing.NamedTuple('stock', [('id', str), ('name', str)])]):
+        """取得表格內容
+
+            Arguments:
+                stock_list {List[typing.NamedTuple} -- 股票代號/名稱列表
+        """
         def get_statment_file(stock: typing.Namedtuple, period: typing.Namedtuple, table_type: str):
             book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
             self.excel.open_book(book_path)
@@ -202,11 +206,11 @@ class ClsTaiwanStock():
         else:
             raise ValueError('source型態只能是[dict/etree._Element]其中之一')
 
-    def get_analysis_files(self, stock_list: List[typing.NamedTuple]):
+    def get_analysis_files(self, stock_list: List[typing.NamedTuple('stock', [('id', str), ('name', str)])]):
         """取得財務分析
 
             Arguments:
-                stock_list {str} -- 股票代號/名稱列表
+                stock_list {List[typing.NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
         """
         periods = self.__get_periods(0)
         for stock in stock_list:
@@ -218,11 +222,11 @@ class ClsTaiwanStock():
                 book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_財務分析.xlsx'
                 self.excel.save_book(book_path)
 
-    def get_dividend_files(self, stock_list: List[typing.NamedTuple]):
+    def get_dividend_files(self, stock_list: List[typing.NamedTuple('stock', [('id', str), ('name', str)])]):
         """取得股利分派情形
 
             Arguments:
-                stock_list {str} -- 股票代號/名稱列表
+                stock_list {List[typing.NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
         """
         periods = self.__get_periods(0)
         for stock in stock_list:
