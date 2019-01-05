@@ -41,8 +41,11 @@ class ClsExcelHandlerTest(unittest.TestCase):
         self.handler.save_workbook('d:\\desktop\\book.xlsx')
         self.handler.exit()
 
+    def test_show_tray_icon(self):
+        self.handler.show_tray_icon()
+
 
 if __name__ == '__main__':
-    tests = ['test_save_book']
+    tests = ['test_show_tray_icon']
     suite = unittest.TestSuite(map(ClsExcelHandlerTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

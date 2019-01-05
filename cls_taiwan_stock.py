@@ -14,12 +14,14 @@ class ClsTaiwanStock():
     def main(self):
         config = self.excel.show_config_form()
         if config.action == 'Submit':
+            is_completed = False
             self.excel.open_books_directory(config.drive_letter + '\\' + config.directory_name)
             stock_list = self.get_stock_list()
             self.get_basic_info_files(stock_list)
             self.get_statment_files(stock_list)
             self.get_analysis_files(stock_list)
             self.get_dividend_files(stock_list)
+            is_completed = True
             self.excel.show_popup('建立完成。')
             self.excel.close_config_form()
         else:
@@ -164,10 +166,10 @@ class ClsTaiwanStock():
         return records
 
     def get_statment_files(self, stock_list: List[typing.NamedTuple('stock', [('id', str), ('name', str)])]):
-        """取得表格內容
+        """取得資產負債表/總合損益表/股東權益表/現金流量表/財務備註內容
 
             Arguments:
-                stock_list {List[typing.NamedTuple} -- 股票代號/名稱列表
+                stock_list {List[typing.NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
         """
         def get_statment_file(stock: typing.Namedtuple, period: typing.Namedtuple, table_type: str):
             book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
@@ -190,7 +192,7 @@ class ClsTaiwanStock():
                 self.get_statment_file(stock, period, '現金流量表')
                 self.get_statment_file(stock, period, '財務備註')
 
-    def __to_list(self, source: Union[dict, etree.Element])->List[str]:
+    def __to_list(self, source: Union[dict, etree.Element]) -> List[str]:
         result = []
         if type(source) is dict:
             for key, value in source.items():
