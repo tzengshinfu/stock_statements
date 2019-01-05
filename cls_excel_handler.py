@@ -7,7 +7,6 @@ from typing import Union
 from typing import List
 import typing
 from openpyxl import load_workbook
-import PySimpleGUIQt as sg
 
 
 class ClsExcelHandler():
@@ -65,20 +64,6 @@ class ClsExcelHandler():
         result.drive_letter = return_values[1][0]
         result.directory_name = return_values[1][1]
         return result
-
-    def show_config_form2(self) -> typing.NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str)]):
-        """開啟設定介面
-
-            Returns:
-                typing.NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str)]) -- 執行動作/磁碟代號/目錄名稱
-        """
-        self.form = gui.FlexForm('設定台股上巿股票Excel存放路徑')
-        layout = [[gui.Text('請輸入下載Excel存放的磁碟代號及目錄名稱')], [gui.Text('Drive', size=(15, 1)), gui.InputText('Z')], [gui.Text('Folder', size=(15, 1)), gui.InputText('Excel')], [gui.Submit(), gui.Cancel()]]
-        # result = typing.NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str)])
-        while True:
-            event, values = self.form.Layout(layout).Read()
-            if event is None or event == 'Exit':
-                break
 
     def show_popup(self, message: str):
         """顯示跳顯訊息
@@ -147,15 +132,8 @@ class ClsExcelHandler():
         else:
             return False
 
-    def show_tray_icon(self):
-        menu_def = ['BLANK', ['&Open', '---', '&Save', ['1', '2', ['a', 'b']], '&Properties', 'E&xit']]
+    def show_running_form(self):
+        pass
 
-        tray = sg.SystemTray(menu=menu_def, filename=r'1274834.ico')
-
-        while True:  # The event loop
-            menu_item = tray.Read()
-            print(menu_item)
-            if menu_item == 'Exit':
-                break
-            elif menu_item == 'Open':
-                sg.Popup('Menu item chosen', menu_item)
+    def close_running_form(self):
+        pass

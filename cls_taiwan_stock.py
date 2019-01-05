@@ -14,19 +14,19 @@ class ClsTaiwanStock():
     def main(self):
         config = self.excel.show_config_form()
         if config.action == 'Submit':
-            is_completed = False
+            self.excel.close_config_form()
+            self.exce.show_running_form()
             self.excel.open_books_directory(config.drive_letter + '\\' + config.directory_name)
             stock_list = self.get_stock_list()
             self.get_basic_info_files(stock_list)
             self.get_statment_files(stock_list)
             self.get_analysis_files(stock_list)
             self.get_dividend_files(stock_list)
-            is_completed = True
+            self.excel.close_running_form()
             self.excel.show_popup('建立完成。')
-            self.excel.close_config_form()
         else:
-            self.excel.show_popup('取消建立!')
             self.excel.close_config_form()
+            self.excel.show_popup('取消建立!')
 
     def get_basic_info_files(self, stock_list: List[typing.NamedTuple('stock', [('id', str), ('name', str)])]):
         """取得台股上巿股票基本資料檔案
