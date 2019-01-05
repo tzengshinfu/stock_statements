@@ -4,6 +4,7 @@ import os
 import PySimpleGUI as gui
 import tempfile
 from typing import Union
+from typing import List
 import typing
 from openpyxl import load_workbook
 
@@ -25,17 +26,19 @@ class ClsExcelHandler():
         """
         self.book.save(book_path)
 
-    def write_to_sheet(self, values: Union[list, str]):
+    def write_to_sheet(self, values: Union[List, str]):
         """寫入工作表
 
             Arguments:
-                values {Union[list, str]} -- 要寫入的值
+                values {Union[List, str]} -- 要寫入的值
         """
-        if type(values) is list:
+        if type(values) is List:
             for row in range(1, len(values)):
                 self.sheet.append(values[row])
-        else:
+        elif type(values) is str:
             self.sheet.append(values)
+        else:
+            raise ValueError('values型態只能是[List/str]其中之一')
 
     def open_books_directory(self, books_path: str):
         """開啟活頁簿預設儲存目錄

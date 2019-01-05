@@ -2,13 +2,16 @@ from cls_webpage_fetcher import ClsWebpageFetcher
 from cls_excel_handler import ClsExcelHandler
 import datetime
 import typing
+from lxml import etree
+from typing import List
+from typing import Union
 
 
 class ClsTaiwanStock():
     fetcher = ClsWebpageFetcher()
     excel = ClsExcelHandler()
 
-    def get_financial_statement_files(self):
+    def main(self):
         config = self.excel.show_config_form()
         if config.action == 'Submit':
             self.excel.open_books_directory(config.drive_letter + '\\' + config.directory_name)
@@ -23,7 +26,7 @@ class ClsTaiwanStock():
             self.excel.show_popup('取消建立!')
             self.excel.close_config_form()
 
-    def get_basic_info_files(self, stock_list: list):
+    def get_basic_info_files(self, stock_list: List):
         """取得台股上巿股票基本資料檔案
 
             Arguments:
@@ -38,7 +41,7 @@ class ClsTaiwanStock():
                 self.excel.write_to_sheet(basic_info)
                 self.excel.save_book(book_path)
 
-    def get_stock_list(self) -> list:
+    def get_stock_list(self) -> List[typing.NamedTuple]:
         """取得台股上巿股票代號/名稱列表
 
             Returns:
@@ -54,7 +57,7 @@ class ClsTaiwanStock():
             stock_list.append(stock)
         return stock_list
 
-    def __get_basic_info(self, stock_id: str) -> list:
+    def __get_basic_info(self, stock_id: str) -> List:
         """取得台股上巿股票基本資料
 
             Arguments:
@@ -91,7 +94,7 @@ class ClsTaiwanStock():
         basic_info_list = self.__to_list(basic_info)
         return basic_info_list
 
-    def __get_periods(self, top_n_seasons_count: int = 0) -> list:
+    def __get_periods(self, top_n_seasons_count: int = 0) -> List:
         def get_season(month: str) -> str:
             mapping = {
                 '1': '1',
@@ -128,7 +131,7 @@ class ClsTaiwanStock():
                 periods.append(period)
         return periods
 
-    def __get_statment_table(self, table_type: str) -> list:
+    def __get_statment_table(self, table_type: str) -> List:
         """取得表格內容
 
             Arguments:
@@ -138,7 +141,6 @@ class ClsTaiwanStock():
             Returns:
                 {list} -- 表格內容
         """
-
         if table_type == '資產負債表':
             item_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
         elif table_type == '總合損益表':
@@ -162,7 +164,7 @@ class ClsTaiwanStock():
             records.append(record)
         return records
 
-    def get_statment_files(self, stock_list):
+    def get_statment_files(self, stock_list: List):
         def get_statment_file(stock: typing.Namedtuple, period: typing.Namedtuple, table_type: str):
             book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
             self.excel.open_book(book_path)
@@ -184,36 +186,50 @@ class ClsTaiwanStock():
                 self.get_statment_file(stock, period, '現金流量表')
                 self.get_statment_file(stock, period, '財務備註')
 
-    def __to_list(self, original_dict: dict)->list:
-        converted_list = []
-        for key, value in original_dict.items():
-            converted_list.append([key, value])
-        return converted_list
+    def __to_list(self, source: Union[dict, etree.Element])->List[str]:
+        result = []
+        if type(source) is dict:
+            for key, value in source.items():
+                result.append([key, value])
+            return result
+        elif type(source) is etree._Element:
+            for row in source:
+                record = []
+                for cell in row:
+                    record.append(cell.text)
+                result.append(record)
+            return result
+        else:
+            raise ValueError('source型態只能是[dict/etree._Element]其中之一')
 
-    # TODO 財務分析
-    def get_analysis_files(self, stock_list):
+    def get_analysis_files(self, stock_list: List[typing.NamedTuple]):
+        """取得財務分析
+
+            Arguments:
+                stock_list {str} -- 股票代號/名稱列表
+        """
         periods = self.__get_periods(0)
         for stock in stock_list:
             for period in periods:
                 self.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
-                print(self.fetcher.response)
+                table = self.fetcher.find_elements('//table[@class="hasBorder"]')
+                list1 = self.__to_list(table)
+                self.excel.write_to_sheet(list1)
+                book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_財務分析.xlsx'
+                self.excel.save_book(book_path)
 
-    # TODO 股利分派情形-經股東會確認
-    def get_dividend_files(self, stock_list):
+    def get_dividend_files(self, stock_list: List[typing.NamedTuple]):
+        """取得股利分派情形
+
+            Arguments:
+                stock_list {str} -- 股票代號/名稱列表
+        """
         periods = self.__get_periods(0)
         for stock in stock_list:
             for period in periods:
                 self.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year))
-                row_tags = self.fetcher.find_elements('//table[@class="hasBorder"]')
-
-                self.excel.write_to_sheet(row_tags)
-                self.excel.save_book('D:\\Desktop\\a.xlsx')
-
-    def __to_list(self, table: etree._Element) -> List[str]:
-        records = []
-        for row in table:
-            record = []
-            for cell in row:
-                record.append(cell.text)
-            records.append(record)
-        return records
+                table = self.fetcher.find_elements('//table[@class="hasBorder"]')
+                list1 = self.__to_list(table)
+                self.excel.write_to_sheet(list1)
+                book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_股利分派情形.xlsx'
+                self.excel.save_book(book_path)

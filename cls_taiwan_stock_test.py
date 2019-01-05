@@ -46,7 +46,7 @@ class ClsTaiwanStockTest(unittest.TestCase):
         self.stock.set_excel_path()
 
     def test_get_financial_statement_files(self):
-        self.stock.get_financial_statement_files()
+        self.stock.main()
 
     def test_get_analysis_files(self):
         for stock in self.stock_list:
@@ -59,14 +59,9 @@ class ClsTaiwanStockTest(unittest.TestCase):
             for period in self.periods:
                 self.stock.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year))
                 row_tags = self.stock.fetcher.find_element('//table[@class="hasBorder"]')
-                records = []
-                for row_tag in row_tags:
-                    record = []
-                    for cell_tag in row_tag:
-                        record.append(cell_tag.text)
-                    records.append(record)
+                list1 = self.stock.__to_list(row_tags)
                 self.excel.open_book('D:\\Desktop\\a.xlsx')
-                self.excel.write_to_sheet(records)
+                self.excel.write_to_sheet(list1)
                 self.excel.save_book('D:\\Desktop\\a.xlsx')
 
     def test_get_stock_list(self):

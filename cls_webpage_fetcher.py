@@ -50,7 +50,7 @@ class ClsWebpageFetcher():
             response = requests.get(url, headers=get_browser_headers(), verify=False, stream=True)
             self.response = response
         else:
-            raise ValueError('方法只能是[get/post/download]其中之一')
+            raise ValueError('method值只能是[get/post/download]其中之一')
 
     def download_file(self, url: str) -> str:
         """下載檔案
