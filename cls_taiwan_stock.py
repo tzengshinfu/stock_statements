@@ -256,8 +256,9 @@ class ClsTaiwanStock():
         self.form = gui.FlexForm('設定台股上巿股票Excel存放路徑')
         layout = [[gui.Text('請輸入下載Excel存放的磁碟代號及目錄名稱')], [gui.Text('Drive', size=(15, 1)), gui.InputText('Z')], [gui.Text('Folder', size=(15, 1)), gui.InputText('Excel')], [gui.Submit(), gui.Cancel()]]
         result = typing.NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str)])
-        return_values = self.form.Layout(layout).Read()
-        self.form.close()
+        window = self.form.Layout(layout)
+        return_values = window.Read()
+        window.Close()
         result.action = return_values[0]
         result.drive_letter = return_values[1][0]
         result.directory_name = return_values[1][1]
@@ -282,8 +283,8 @@ class ClsTaiwanStock():
                 raise SystemExit()
             if self.total_processes > 0 and self.current_process > 0 and self.total_processes == self.current_process:
                 break
-            window.FindElement('progressbar').UpdateBar(self.current_process)
-            window.FindElement('current_processing').Update(self.current_process + '/' + self.total_processes)
+            window.FindElement('progressbar').UpdateBar(str(self.current_process))
+            window.FindElement('current_processing').Update(str(self.current_process) + '/' + str(self.total_processes))
         window.Close()
 
     def set_total_processes(self, stock_list: List[typing.NamedTuple('stock', [('id', str), ('name', str)])]):
