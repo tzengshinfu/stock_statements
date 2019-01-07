@@ -5,8 +5,8 @@ import typing
 
 
 class ClsTaiwanStockTest(unittest.TestCase):
-    stock = ClsTaiwanStock()
-    excel = ClsExcelHandler()
+    taiwan_stock = ClsTaiwanStock()
+    excel_handler = ClsExcelHandler()
 
     # region 初始方法
     def __init__(self, *args, **kwargs):
@@ -37,38 +37,41 @@ class ClsTaiwanStockTest(unittest.TestCase):
     # endregion
 
     def test_get_basic_info_files(self):
-        self.stock.get_basic_info_files()
+        self.taiwan_stock.get_basic_info_files()
 
     def test_get_table(self):
-        self.stock.__get_statment_table('1101', 2)
+        self.taiwan_stock.__get_statment_table('1101', 2)
 
     def test_setExcelPath(self):
-        self.stock.set_excel_path()
+        self.taiwan_stock.set_excel_path()
 
     def test_get_financial_statement_files(self):
-        self.stock.main()
+        self.taiwan_stock.main()
 
     def test_get_analysis_files(self):
         for stock in self.stock_list:
             for period in self.periods:
-                self.stock.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
-                print(self.stock.fetcher.response)
+                self.taiwan_stock.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
+                print(self.taiwan_stock.fetcher.response)
 
     def test_get_dividend_files(self):
         for stock in self.stock_list:
             for period in self.periods:
-                self.stock.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year))
-                row_tags = self.stock.fetcher.find_element('//table[@class="hasBorder"]')
-                list1 = self.stock.__to_list(row_tags)
-                self.excel.open_book('D:\\Desktop\\a.xlsx')
-                self.excel.write_to_sheet(list1)
-                self.excel.save_book('D:\\Desktop\\a.xlsx')
+                self.taiwan_stock.fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year))
+                row_tags = self.taiwan_stock.fetcher.find_element('//table[@class="hasBorder"]')
+                list1 = self.taiwan_stock.__to_list(row_tags)
+                self.excel_handler.open_book('D:\\Desktop\\a.xlsx')
+                self.excel_handler.write_to_sheet(list1)
+                self.excel_handler.save_book('D:\\Desktop\\a.xlsx')
 
     def test_get_stock_list(self):
-        self.stock.get_stock_list()
+        self.taiwan_stock.get_stock_list()
+
+    def test_show_running_message(self):
+        self.taiwan_stock.show_running_process()
 
 
 if __name__ == '__main__':
-    tests = ['test_get_dividend_files']
+    tests = ['test_show_running_message']
     suite = unittest.TestSuite(map(ClsTaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

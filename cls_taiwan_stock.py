@@ -5,28 +5,30 @@ import typing
 from lxml import etree
 from typing import List
 from typing import Union
+import PySimpleGUI as gui
 
 
 class ClsTaiwanStock():
     fetcher = ClsWebpageFetcher()
     excel = ClsExcelHandler()
+    current_process = 0
+    total_processes = 0
+    table_count = 8  # 每個股票要擷取的Excel表格總數
 
     def main(self):
-        config = self.excel.show_config_form()
+        config = self.show_config_form()
         if config.action == 'Submit':
-            self.excel.close_config_form()
-            self.exce.show_running_form()
+            self.show_running_process()
             self.excel.open_books_directory(config.drive_letter + '\\' + config.directory_name)
             stock_list = self.get_stock_list()
+            self.set_total_processes(stock_list)
             self.get_basic_info_files(stock_list)
             self.get_statment_files(stock_list)
             self.get_analysis_files(stock_list)
             self.get_dividend_files(stock_list)
-            self.excel.close_running_form()
-            self.excel.show_popup('建立完成。')
+            self.show_popup('建立完成。')
         else:
-            self.excel.close_config_form()
-            self.excel.show_popup('取消建立!')
+            self.show_popup('取消建立!')
 
     def get_basic_info_files(self, stock_list: List[typing.NamedTuple('stock', [('id', str), ('name', str)])]):
         """取得台股上巿股票基本資料檔案
@@ -42,6 +44,7 @@ class ClsTaiwanStock():
                 basic_info = self.__get_basic_info(stock.id)
                 self.excel.write_to_sheet(basic_info)
                 self.excel.save_book(book_path)
+                self.current_process += 1
 
     def get_stock_list(self) -> List[typing.NamedTuple('stock', [('id', str), ('name', str)])]:
         """取得台股上巿股票代號/名稱列表
@@ -180,17 +183,19 @@ class ClsTaiwanStock():
                 table = self.__get_statment_table(table_type)
                 self.excel.write_to_sheet(table)
             self.excel.save_book(book_path)
+            self.current_process += 1
+
         periods = self.__get_periods(0)
 
         for stock in stock_list:
             for period in periods:
                 self.fetcher.wait(2, 7)
                 self.fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.year, period.season))
-                self.get_statment_file(stock, period, '資產負債表')
-                self.get_statment_file(stock, period, '總合損益表')
-                self.get_statment_file(stock, period, '股東權益表')
-                self.get_statment_file(stock, period, '現金流量表')
-                self.get_statment_file(stock, period, '財務備註')
+                get_statment_file(stock, period, '資產負債表')
+                get_statment_file(stock, period, '總合損益表')
+                get_statment_file(stock, period, '股東權益表')
+                get_statment_file(stock, period, '現金流量表')
+                get_statment_file(stock, period, '財務備註')
 
     def __to_list(self, source: Union[dict, etree.Element]) -> List[str]:
         result = []
@@ -223,6 +228,7 @@ class ClsTaiwanStock():
                 self.excel.write_to_sheet(list1)
                 book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_財務分析.xlsx'
                 self.excel.save_book(book_path)
+                self.current_process += 1
 
     def get_dividend_files(self, stock_list: List[typing.NamedTuple('stock', [('id', str), ('name', str)])]):
         """取得股利分派情形
@@ -239,3 +245,50 @@ class ClsTaiwanStock():
                 self.excel.write_to_sheet(list1)
                 book_path = self.excel.books_path + '\\' + stock.id + '(' + stock.name + ')_股利分派情形.xlsx'
                 self.excel.save_book(book_path)
+                self.current_process += 1
+
+    def show_config_form(self) -> typing.NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str)]):
+        """開啟設定介面
+
+            Returns:
+                typing.NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str)]) -- 執行動作/磁碟代號/目錄名稱
+        """
+        self.form = gui.FlexForm('設定台股上巿股票Excel存放路徑')
+        layout = [[gui.Text('請輸入下載Excel存放的磁碟代號及目錄名稱')], [gui.Text('Drive', size=(15, 1)), gui.InputText('Z')], [gui.Text('Folder', size=(15, 1)), gui.InputText('Excel')], [gui.Submit(), gui.Cancel()]]
+        result = typing.NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str)])
+        return_values = self.form.Layout(layout).Read()
+        self.form.close()
+        result.action = return_values[0]
+        result.drive_letter = return_values[1][0]
+        result.directory_name = return_values[1][1]
+        return result
+
+    def show_popup(self, message: str):
+        """顯示跳顯訊息
+
+            Arguments:
+                message {str} -- 訊息文字
+        """
+        gui.Popup(message)
+
+    def show_running_process(self):
+        self.form = gui.FlexForm('處理中')
+        layout = [[gui.Text('完成進度')], [gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(self.total_processes, orientation='h', size=(20, 20), key='progressbar')], [gui.Cancel()]]
+
+        window = self.form.Layout(layout)
+
+        while True:
+            event, values = window.Read(timeout=0)
+            if event is None or event == 'Cancel':
+                gui.Popup('下載已中止')
+                raise SystemExit()
+            if self.total_processes > 0 and self.current_process > 0 and self.total_processes == self.current_process:
+                break
+
+            window.FindElement('progressbar').UpdateBar(self.current_process)
+            window.FindElement('current_processing').Update(self.current_process + '/' + self.total_processes)
+
+        window.Close()
+
+    def set_total_processes(self, stock_list: List[typing.NamedTuple('stock', [('id', str), ('name', str)])]):
+        self.total_processes = len(stock_list) * self.table_count
