@@ -11,9 +11,9 @@ import PySimpleGUI as gui
 class ClsTaiwanStock():
     fetcher = ClsWebpageFetcher()
     excel = ClsExcelHandler()
-    current_process = 0
-    total_processes = 0
-    table_count = 8  # 每個股票要擷取的Excel表格總數
+    current_process: int = 0
+    total_processes: int = 0
+    table_count: int = 8  # 每個股票要擷取的Excel表格總數
 
     def main(self):
         config = self.show_config_form()
@@ -274,9 +274,7 @@ class ClsTaiwanStock():
     def show_running_process(self):
         self.form = gui.FlexForm('處理中')
         layout = [[gui.Text('完成進度')], [gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(self.total_processes, orientation='h', size=(20, 20), key='progressbar')], [gui.Cancel()]]
-
         window = self.form.Layout(layout)
-
         while True:
             event, values = window.Read(timeout=0)
             if event is None or event == 'Cancel':
@@ -284,10 +282,8 @@ class ClsTaiwanStock():
                 raise SystemExit()
             if self.total_processes > 0 and self.current_process > 0 and self.total_processes == self.current_process:
                 break
-
             window.FindElement('progressbar').UpdateBar(self.current_process)
             window.FindElement('current_processing').Update(self.current_process + '/' + self.total_processes)
-
         window.Close()
 
     def set_total_processes(self, stock_list: List[typing.NamedTuple('stock', [('id', str), ('name', str)])]):
