@@ -9,9 +9,9 @@ from typing import List
 
 class ClsWebpageFetcher():
     def __init__(self):
-        self.tempdir_path = tempfile.gettempdir()
-        self.response = None
-        self.tree = None
+        self.__tempdir_path = tempfile.gettempdir()
+        self.__response = None
+        self.__tree = None
 
     @retry((ConnectionError, ConnectionRefusedError), tries=3, delay=10)
     def go_to(self, url: str, method: str = 'get', data: str = None):
@@ -26,7 +26,11 @@ class ClsWebpageFetcher():
         """
 
         def get_browser_headers() -> dict:
-            """取得瀏覽器Request Header"""
+            """取得瀏覽器Request Header
+
+                Returns:
+                    dict -- Request Header
+            """
             browser_headers = {
                 'user-agent':
                 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36'
@@ -39,16 +43,16 @@ class ClsWebpageFetcher():
         if method == 'get':
             response = session.get(url, params=data, headers=get_browser_headers(), verify=False)
             response.encoding = response.apparent_encoding
-            self.response = response
-            self.tree = etree.HTML(self.response.text)
+            self.__response = response
+            self.__tree = etree.HTML(self.__response.text)
         elif method == 'post':
             response = session.post(url, data=data, headers=get_browser_headers(), verify=False)
             response.encoding = response.apparent_encoding
-            self.response = response
-            self.tree = etree.HTML(self.response.text)
+            self.__response = response
+            self.__tree = etree.HTML(self.__response.text)
         elif method == 'download':
             response = requests.get(url, headers=get_browser_headers(), verify=False, stream=True)
-            self.response = response
+            self.__response = response
         else:
             raise ValueError('method值只能是(get/post/download)其中之一')
 
@@ -61,10 +65,10 @@ class ClsWebpageFetcher():
             Returns:
                 str -- 下載後的本機路徑
         """
-        file_path = self.tempdir_path + '\\' + url.split('/')[-1]
+        file_path = self.__tempdir_path + '\\' + url.split('/')[-1]
         self.go_to(url, 'download')
         with open(file_path, 'wb') as stream:
-            for chunk in self.response.iter_content(chunk_size=1024):
+            for chunk in self.__response.iter_content(chunk_size=1024):
                 if chunk:
                     stream.write(chunk)
         return file_path
@@ -90,7 +94,7 @@ class ClsWebpageFetcher():
             Returns:
                 List[etree._Element] -- 網頁元素
         """
-        elements = self.tree.xpath(elements_xpath)
+        elements = self.__tree.xpath(elements_xpath)
         return elements
 
     def wait(self, at_least_seconds: int, at_most_seconds: int):

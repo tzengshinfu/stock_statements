@@ -9,12 +9,12 @@ from openpyxl import load_workbook
 
 class ClsExcelHandler():
     def __init__(self):
-        self.books_path = tempfile.gettempdir()
+        self._books_path = tempfile.gettempdir()
 
     def __add_book(self):
         """新增活頁簿"""
-        self.book = Workbook()
-        self.sheet = self.book.active
+        self.__book = Workbook()
+        self.__sheet = self.__book.active
 
     def save_book(self, book_path: str):
         """儲存活頁簿
@@ -22,7 +22,7 @@ class ClsExcelHandler():
             Arguments:
                 book_path {str} -- 本機路徑
         """
-        self.book.save(book_path)
+        self.__book.save(book_path)
 
     def write_to_sheet(self, values: Union[List[List[str]], List[str], str]):
         """寫入工作表
@@ -32,11 +32,11 @@ class ClsExcelHandler():
         """
         if type(values) is List[List[str]]:
             for currentIndex in range(1, len(values)):
-                self.sheet.append(values[currentIndex])
+                self.__sheet.append(values[currentIndex])
         elif type(values) is List[str] or type(values) is str:
-            self.sheet.append(values)
+            self.__sheet.append(values)
         else:
-            raise ValueError('values型態只能是(List[List[str]]/List[str]/str)其中之一')
+            raise ValueError('values型別只能是(List[List[str]]/List[str]/str)其中之一')
 
     def open_books_directory(self, books_path: str):
         """開啟活頁簿預設儲存目錄
@@ -46,7 +46,7 @@ class ClsExcelHandler():
         """
         if not os.path.exists(books_path):
             os.makedirs(books_path)
-        self.books_path = books_path
+        self._books_path = books_path
 
     def open_book(self, book_path: str):
         """開啟活頁簿(不存在則先建立)
@@ -57,8 +57,8 @@ class ClsExcelHandler():
         if not self.is_book_existed(book_path):
             self.__add_book()
         else:
-            self.book = load_workbook(book_path)
-            self.sheet = self.book.active
+            self.__book = load_workbook(book_path)
+            self.__sheet = self.__book.active
 
     def __add_sheet(self, sheet_name: str):
         """新增工作表
@@ -66,17 +66,17 @@ class ClsExcelHandler():
             Arguments:
                 sheet_name {str} -- 工作表名稱
         """
-        self.book.create_sheet(sheet_name)
+        self.__book.create_sheet(sheet_name)
 
     def open_sheet(self, sheet_name: str):
         """開啟工作表(不存在則先建立)
 
-        Arguments:
-            sheet_name {str} -- 工作表名稱
+            Arguments:
+                sheet_name {str} -- 工作表名稱
         """
         if not self.is_sheet_existed():
             self.__add_sheet(sheet_name)
-        self.book.active = self.book.worksheets.index(
+        self.__book.active = self.__book.worksheets.index(
             self.get_sheet_by_name(sheet_name))
 
     def is_book_existed(self, book_path: str) -> bool:
@@ -99,7 +99,7 @@ class ClsExcelHandler():
             Returns:
                 bool -- 回傳結果
         """
-        if sheet_name in self.book.sheetnames:
+        if sheet_name in self.__book.sheetnames:
             return True
         else:
             return False

@@ -37,7 +37,7 @@ class ClsExcelHandlerTest(unittest.TestCase):
         self.excel_handler.exit()
 
     def test_paste_array_to_sheet(self):
-        self.excel_handler.sheet.range('A1').value = [[1, 2], [3, 4], [5, 6]]
+        self.excel_handler.__sheet.range('A1').value = [[1, 2], [3, 4], [5, 6]]
         self.excel_handler.save_workbook('d:\\desktop\\book.xlsx')
         self.excel_handler.exit()
 
