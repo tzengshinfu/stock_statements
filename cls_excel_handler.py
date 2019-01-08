@@ -24,19 +24,19 @@ class ClsExcelHandler():
         """
         self.book.save(book_path)
 
-    def write_to_sheet(self, values: Union[list, str]):
+    def write_to_sheet(self, values: Union[List[List[str]], List[str], str]):
         """寫入工作表
 
             Arguments:
-                values {Union[List[str], str]} -- 要寫入的值
+                values {Union[List[List[str]], List[str], str]} -- 要寫入的值
         """
-        if type(values) is list:
-            for row in range(1, len(values)):
-                self.sheet.append(values[row])
-        elif type(values) is str:
+        if type(values) is List[List[str]]:
+            for currentIndex in range(1, len(values)):
+                self.sheet.append(values[currentIndex])
+        elif type(values) is List[str] or type(values) is str:
             self.sheet.append(values)
         else:
-            raise ValueError('values型態只能是(list/str)其中之一')
+            raise ValueError('values型態只能是(List[List[str]]/List[str]/str)其中之一')
 
     def open_books_directory(self, books_path: str):
         """開啟活頁簿預設儲存目錄
