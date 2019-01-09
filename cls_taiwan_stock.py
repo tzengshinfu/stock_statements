@@ -6,6 +6,7 @@ from typing import List
 from typing import Union
 from typing import NamedTuple
 import PySimpleGUI as gui
+import asyncio
 
 
 class ClsTaiwanStock():
@@ -18,17 +19,21 @@ class ClsTaiwanStock():
     def main(self):
         config = self.show_config_form()
         if config.action == 'Submit':
-            self.show_running_process()
-            self.__excel.open_books_directory(config.drive_letter + '\\' + config.directory_name)
-            stock_list = self.get_stock_list()
-            self.set_total_processes(stock_list)
-            self.get_basic_info_files(stock_list)
-            self.get_statment_files(stock_list)
-            self.get_analysis_files(stock_list)
-            self.get_dividend_files(stock_list)
-            self.show_popup('建立完成。')
+            asyncio.run(self.show_running_process())
+            asyncio.run(self.show())
+            # self.__excel.open_books_directory(config.drive_letter + '\\' + config.directory_name)
+            # stock_list = self.get_stock_list()
+            # self.set_total_processes(stock_list)
+            # self.get_basic_info_files(stock_list)
+            # self.get_statment_files(stock_list)
+            # self.get_analysis_files(stock_list)
+            # self.get_dividend_files(stock_list)
+            # self.show_popup('建立完成。')
         else:
             self.show_popup('取消建立!')
+
+    async def show(self):
+        self.show_popup('test')
 
     def get_basic_info_files(self, stock_list: List[NamedTuple('stock', [('id', str), ('name', str)])]):
         """取得台股上巿股票基本資料檔案
@@ -272,7 +277,7 @@ class ClsTaiwanStock():
         """
         gui.Popup(message)
 
-    def show_running_process(self):
+    async def show_running_process(self):
         form = gui.FlexForm('處理中')
         layout = [[gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(self.__total_processes, orientation='h', size=(20, 20), key='progressbar')], [gui.Cancel()]]
         window = form.Layout(layout)
