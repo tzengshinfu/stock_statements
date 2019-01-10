@@ -50,7 +50,7 @@ class ClsTaiwanStock():
                     Returns:
                         {List[List[str]]} -- 基本資料
                 """
-                basic_info = dict[str, str]
+                basic_info = dict()
                 self.__fetcher.go_to('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + stock_id)
                 row_tags = self.__fetcher.find_elements('//table[@class="hasBorder"]//tr')
                 title = ''
@@ -95,7 +95,7 @@ class ClsTaiwanStock():
             Returns:
                 {List[NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
         """
-        stock_list = List[NamedTuple('stock', [('id', str), ('name', str)])]
+        stock_list = list()
         self.__fetcher.go_to('http://www.twse.com.tw/zh/stockSearch/stockSearch')
         stock_datas = self.__fetcher.find_elements('//table[@class="grid"]//a/text()')
         stock = NamedTuple('stock', [('id', str), ('name', str)])
@@ -127,7 +127,7 @@ class ClsTaiwanStock():
         years = self.__fetcher.find_elements('//select[@id="SYEAR"]//option/@value')
         current_year = str(datetime.datetime.now().year)
         current_season = get_season(str(datetime.datetime.now().month))
-        periods = List[NamedTuple('period', [('year', str), ('season', str)])]
+        periods = list()
         period = NamedTuple('period', [('year', str), ('season', str)])
         index = 0
         for year in reversed(years):
@@ -173,9 +173,9 @@ class ClsTaiwanStock():
                     raise ValueError('table_type值只能是(資產負債表/總合損益表/股東權益表/現金流量表/財務備註)其中之一')
 
                 row_tags = self.__fetcher.find_elements(item_xpath)
-                records = List[List[str]]
+                records = list()
                 for row_tag in row_tags:
-                    record = List[str]
+                    record = list()
                     cell_tags = row_tag.xpath('./td[position() <= 2]')
                     for cell_tag in cell_tags:
                         record.append(cell_tag.text)
@@ -205,14 +205,14 @@ class ClsTaiwanStock():
                 get_statment_file(stock, period, '財務備註')
 
     def __to_list(self, source: Union[dict, etree.Element]) -> List[List[str]]:
-        result = List[List[str]]
-        if type(source) is dict[str, str]:
+        result = list()
+        if type(source) is dict:
             for key, value in source.items():
                 result.append([key, value])
             return result
         elif type(source) is etree._Element:
             for row in source:
-                record = List[str]
+                record = list()
                 for cell in row:
                     record.append(cell.text)
                 result.append(record)

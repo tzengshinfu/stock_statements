@@ -30,10 +30,13 @@ class ClsExcelHandler():
             Arguments:
                 values {Union[List[List[str]], List[str], str]} -- 要寫入的值
         """
-        if type(values) is List[List[str]]:
-            for currentIndex in range(1, len(values)):
-                self.__sheet.append(values[currentIndex])
-        elif type(values) is List[str] or type(values) is str:
+        if type(values) is list:
+            if type(values[0]) is list:
+                for currentIndex in range(1, len(values)):
+                    self.__sheet.append(values[currentIndex])
+            else:
+                self.__sheet.append(values)
+        elif type(values) is str:
             self.__sheet.append(values)
         else:
             raise ValueError('values型別只能是(List[List[str]]/List[str]/str)其中之一')
