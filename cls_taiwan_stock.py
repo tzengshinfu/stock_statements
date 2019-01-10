@@ -19,22 +19,22 @@ class ClsTaiwanStock():
     def main(self):
         config = self.show_config_form()
         if config.action == 'Submit':
-            asyncio.run(self.show_running_process())
-            asyncio.run(self.show())
-            # self.__excel.open_books_directory(config.drive_letter + '\\' + config.directory_name)
-            # stock_list = self.get_stock_list()
-            # self.set_total_processes(stock_list)
-            # self.get_basic_info_files(stock_list)
-            # self.get_statment_files(stock_list)
-            # self.get_analysis_files(stock_list)
-            # self.get_dividend_files(stock_list)
-            # self.show_popup('建立完成。')
+            self.__excel.open_books_directory(config.drive_letter + '\\' + config.directory_name)
+            stock_list = self.get_stock_list()
+            self.set_total_processes(stock_list)
+            runner = asyncio.get_event_loop()
+            tasks = [self.show_running_process()]
+            tasks.append(self.get_basic_info_files(stock_list))
+            tasks.append(self.get_statment_files(stock_list))
+            tasks.append(self.get_analysis_files(stock_list))
+            tasks.append(self.get_dividend_files(stock_list))
+            runner.run_until_complete(asyncio.wait(tasks))
+            runner.Close()
+            self.show_popup('建立完成。')
         else:
             self.show_popup('取消建立!')
 
-    async def show(self):
-        self.show_popup('test')
-
+    @asyncio.coroutine
     def get_basic_info_files(self, stock_list: List[NamedTuple('stock', [('id', str), ('name', str)])]):
         """取得台股上巿股票基本資料檔案
 
@@ -87,6 +87,7 @@ class ClsTaiwanStock():
                 self.__excel.write_to_sheet(basic_info)
                 self.__excel.save_book(book_path)
                 self.__current_process += 1
+                yield
 
     def get_stock_list(self) -> List[NamedTuple('stock', [('id', str), ('name', str)])]:
         """取得台股上巿股票代號/名稱列表
@@ -141,6 +142,7 @@ class ClsTaiwanStock():
                 periods.append(period)
         return periods
 
+    @asyncio.coroutine
     def get_statment_files(self, stock_list: List[NamedTuple('stock', [('id', str), ('name', str)])], top_n_seasons: int):
         """取得資產負債表/總合損益表/股東權益表/現金流量表/財務備註內容
 
@@ -189,6 +191,7 @@ class ClsTaiwanStock():
                 self.__excel.write_to_sheet(table)
             self.__excel.save_book(book_path)
             self.__current_process += 1
+            yield
 
         periods = self.__get_periods(top_n_seasons)
         for stock in stock_list:
@@ -217,6 +220,7 @@ class ClsTaiwanStock():
         else:
             raise ValueError('source型別只能是(dict/etree._Element)其中之一')
 
+    @asyncio.coroutine
     def get_analysis_files(self, stock_list: List[NamedTuple('stock', [('id', str), ('name', str)])], top_n_seasons: int):
         """取得財務分析
 
@@ -233,7 +237,9 @@ class ClsTaiwanStock():
                 book_path = self.__excel._books_path + '\\' + stock.id + '(' + stock.name + ')_財務分析.xlsx'
                 self.__excel.save_book(book_path)
                 self.__current_process += 1
+                yield
 
+    @asyncio.coroutine
     def get_dividend_files(self, stock_list: List[NamedTuple('stock', [('id', str), ('name', str)])], top_n_seasons: int):
         """取得股利分派情形
 
@@ -250,6 +256,7 @@ class ClsTaiwanStock():
                 book_path = self.__excel._books_path + '\\' + stock.id + '(' + stock.name + ')_股利分派情形.xlsx'
                 self.__excel.save_book(book_path)
                 self.__current_process += 1
+                yield
 
     def show_config_form(self) -> NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)]):
         """開啟設定介面
@@ -277,7 +284,8 @@ class ClsTaiwanStock():
         """
         gui.Popup(message)
 
-    async def show_running_process(self):
+    @asyncio.coroutine
+    def show_running_process(self):
         form = gui.FlexForm('處理中')
         layout = [[gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(self.__total_processes, orientation='h', size=(20, 20), key='progressbar')], [gui.Cancel()]]
         window = form.Layout(layout)
@@ -290,6 +298,7 @@ class ClsTaiwanStock():
                 break
             window.FindElement('progressbar').UpdateBar(self.__current_process)
             window.FindElement('current_processing').Update('完成進度' + str(self.__current_process) + '/' + str(self.__total_processes))
+            yield
         window.Close()
 
     def set_total_processes(self, stock_list: List[NamedTuple('stock', [('id', str), ('name', str)])]):
