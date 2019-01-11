@@ -25,9 +25,9 @@ class ClsTaiwanStock():
             runner = asyncio.get_event_loop()
             tasks = [self.show_running_process()]
             tasks.append(self.get_basic_info_files(stock_list))
-            tasks.append(self.get_statment_files(stock_list))
-            tasks.append(self.get_analysis_files(stock_list))
-            tasks.append(self.get_dividend_files(stock_list))
+            tasks.append(self.get_statment_files(stock_list, config.top_n_seasons))
+            tasks.append(self.get_analysis_files(stock_list, config.top_n_seasons))
+            tasks.append(self.get_dividend_files(stock_list, config.top_n_seasons))
             runner.run_until_complete(asyncio.wait(tasks))
             runner.Close()
             self.show_popup('建立完成。')
@@ -148,6 +148,7 @@ class ClsTaiwanStock():
 
             Arguments:
                 stock_list {List[NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
+                top_n_seasons {int} -- 前n季(0=不限)
         """
         def get_statment_file(stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)]), table_type: str):
             def get_statment_table(table_type: str) -> List[str]:
@@ -226,6 +227,7 @@ class ClsTaiwanStock():
 
             Arguments:
                 stock_list {List[NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
+                top_n_seasons {int} -- 前n季(0=不限)
         """
         periods = self.__get_periods(top_n_seasons)
         for stock in stock_list:
@@ -245,6 +247,7 @@ class ClsTaiwanStock():
 
             Arguments:
                 stock_list {List[NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
+                top_n_seasons {int} -- 前n季(0=不限)
         """
         periods = self.__get_periods(top_n_seasons)
         for stock in stock_list:
@@ -293,7 +296,7 @@ class ClsTaiwanStock():
             event, values = window.Read(timeout=0)
             if event is None or event == 'Cancel':
                 gui.Popup('下載已中止')
-                raise SystemExit()
+                raise SystemExit('使用者中止')
             if self.__total_processes > 0 and self.__current_process > 0 and self.__total_processes == self.__current_process:
                 break
             window.FindElement('progressbar').UpdateBar(self.__current_process)
