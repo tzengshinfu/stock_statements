@@ -300,7 +300,7 @@ class ClsTaiwanStock():
             if self.__total_processes > 0 and self.__current_process > 0 and self.__total_processes == self.__current_process:
                 break
             window.FindElement('progressbar').UpdateBar(self.__current_process)
-            window.FindElement('current_processing').Update('完成進度' + str(self.__current_process) + '/' + str(self.__total_processes))
+            window.FindElement('current_processing').Update('完成進度' + str(self.__current_process / self.__total_processes) + '%' + '/' + '100%')
             yield
         window.Close()
 
