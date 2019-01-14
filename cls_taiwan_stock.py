@@ -7,6 +7,7 @@ from typing import Union
 from typing import NamedTuple
 import PySimpleGUI as gui
 import asyncio
+from threading import Thread
 
 
 class ClsTaiwanStock():
@@ -22,7 +23,6 @@ class ClsTaiwanStock():
             self.__excel.open_books_directory(config.drive_letter + '\\' + config.directory_name)
             stock_list = self.get_stock_list()
             self.set_total_processes(stock_list)
-            runner = asyncio.get_event_loop()
             tasks = [self.show_running_process()]
             tasks.append(self.get_basic_info_files(stock_list))
             tasks.append(self.get_statment_files(stock_list, config.top_n_seasons))
@@ -293,7 +293,7 @@ class ClsTaiwanStock():
         layout = [[gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(self.__total_processes, orientation='h', size=(20, 20), key='progressbar')], [gui.Cancel()]]
         window = form.Layout(layout)
         while True:
-            event, values = window.Read(timeout=0)
+            event, values = window.Read(timeout=10)
             if event is None or event == 'Cancel':
                 gui.Popup('下載已中止')
                 raise SystemExit('使用者中止')
