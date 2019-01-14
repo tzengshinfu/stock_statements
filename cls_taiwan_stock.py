@@ -52,22 +52,22 @@ class ClsTaiwanStock():
                 """
                 basic_info = dict()
                 self.__fetcher.go_to('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + stock_id)
-                row_tags = self.__fetcher.find_elements('//table[@class="hasBorder"]//tr')
+                rows = self.__fetcher.find_elements('//table[@class="hasBorder"]//tr')
                 title = ''
-                for row_tag in row_tags:
-                    if (row_tag[0].text.strip() == '本公司'):
-                        basic_info[row_tag[2].text.strip()] = row_tag[1].text.strip()
-                        basic_info[row_tag[5].text.strip()] = row_tag[4].text.strip()
-                    if (row_tag[0].text.strip() == '本公司採'):
-                        basic_info['會計年度月制(現)'] = row_tag[1].text.strip()
-                    if (row_tag[0].text.strip() == '本公司於'):
-                        basic_info['會計年度月制(前)'] = row_tag[3].text.strip()
-                        basic_info['會計年度月制轉換'] = row_tag[1].text.strip()
-                    if (row_tag[0].text.strip() == '編製財務報告類型'):
-                        report_type = row_tag[1].text.strip()
-                        basic_info[row_tag[0].text.strip()] = report_type[1:3] if report_type[0] == '●' else report_type[4:6]
+                for row in rows:
+                    if (row[0].text.strip() == '本公司'):
+                        basic_info[row[2].text.strip()] = row[1].text.strip()
+                        basic_info[row[5].text.strip()] = row[4].text.strip()
+                    if (row[0].text.strip() == '本公司採'):
+                        basic_info['會計年度月制(現)'] = row[1].text.strip()
+                    if (row[0].text.strip() == '本公司於'):
+                        basic_info['會計年度月制(前)'] = row[3].text.strip()
+                        basic_info['會計年度月制轉換'] = row[1].text.strip()
+                    if (row[0].text.strip() == '編製財務報告類型'):
+                        report_type = row[1].text.strip()
+                        basic_info[row[0].text.strip()] = report_type[1:3] if report_type[0] == '●' else report_type[4:6]
                     else:
-                        for index, cell in enumerate(row_tag, start=1):
+                        for index, cell in enumerate(row, start=1):
                             if (index % 2 == 1):
                                 if (cell.tag == 'th'):
                                     title = cell.text.strip()
@@ -173,13 +173,13 @@ class ClsTaiwanStock():
                 else:
                     raise ValueError('table_type值只能是(資產負債表/總合損益表/股東權益表/現金流量表/財務備註)其中之一')
 
-                row_tags = self.__fetcher.find_elements(item_xpath)
+                rows = self.__fetcher.find_elements(item_xpath)
                 records = list()
-                for row_tag in row_tags:
+                for row in rows:
                     record = list()
-                    cell_tags = row_tag.xpath('./td[position() <= 2]')
-                    for cell_tag in cell_tags:
-                        record.append(cell_tag.text)
+                    cells = row.xpath('./td[position() <= 2]')
+                    for cell in cells:
+                        record.append(cell.text)
                     records.append(record)
                 return records
 
