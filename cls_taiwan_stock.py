@@ -7,7 +7,6 @@ from typing import Union
 from typing import NamedTuple
 import PySimpleGUI as gui
 import asyncio
-from threading import Thread
 
 
 class ClsTaiwanStock():
@@ -16,6 +15,7 @@ class ClsTaiwanStock():
     __current_process: int = 0
     __total_processes: int = 0
     __sheet_count: int = 8  # 每個股票要擷取的Excel表格總數
+    __queue = asyncio.Queue(1)
 
     def main(self):
         config = self.show_config_form()
@@ -287,8 +287,7 @@ class ClsTaiwanStock():
         """
         gui.Popup(message)
 
-    @asyncio.coroutine
-    def show_running_process(self):
+    async def show_running_process(self):
         form = gui.FlexForm('處理中')
         layout = [[gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(self.__total_processes, orientation='h', size=(20, 20), key='progressbar')], [gui.Cancel()]]
         window = form.Layout(layout)
@@ -299,6 +298,11 @@ class ClsTaiwanStock():
                 raise SystemExit('使用者中止')
             if self.__total_processes > 0 and self.__current_process > 0 and self.__total_processes == self.__current_process:
                 break
+            ltp = await self.queue.get()
+            print(ltp)
+            await asyncio.sleep(0)
+
+
             window.FindElement('progressbar').UpdateBar(self.__current_process)
             window.FindElement('current_processing').Update('完成進度' + str(self.__current_process / self.__total_processes) + '%' + '/' + '100%')
             yield
