@@ -15,21 +15,23 @@ class ClsWebpageFetcher():
 
     @retry((ConnectionError, ConnectionRefusedError), tries=3, delay=10)
     def go_to(self, url: str, method: str = 'get', data: str = None):
-        """取得瀏覽器回應
+        """
+        取得瀏覽器回應
 
-            Arguments:
-                url {str} -- 網址
-                method {str} -- get/post/download
+        Arguments:
+            url {str} -- 網址
+            method {str} -- get/post/download
 
-            Keyword Arguments:
-                data {str} -- 附加資料 (default: {None})
+        Keyword Arguments:
+            data {str} -- 附加資料 (default: {None})
         """
 
         def get_browser_headers() -> dict:
-            """取得瀏覽器Request Header
+            """
+            取得瀏覽器Request Header
 
-                Returns:
-                    dict -- Request Header
+            Returns:
+                dict -- Request Header
             """
             browser_headers = {
                 'user-agent':
@@ -57,13 +59,14 @@ class ClsWebpageFetcher():
             raise ValueError('method值只能是(get/post/download)其中之一')
 
     def download_file(self, url: str) -> str:
-        """下載檔案
+        """
+        下載檔案
 
-            Arguments:
-                url {str} -- 檔案所在URL
+        Arguments:
+            url {str} -- 檔案所在URL
 
-            Returns:
-                str -- 下載後的本機路徑
+        Returns:
+            str -- 下載後的本機路徑
         """
         file_path = self.__tempdir_path + '\\' + url.split('/')[-1]
         self.go_to(url, 'download')
@@ -74,34 +77,37 @@ class ClsWebpageFetcher():
         return file_path
 
     def find_element(self, element_xpath: str) -> List[etree._Element]:
-        """尋找符合條件的第1個網頁元素
+        """
+        尋找符合條件的第1個網頁元素
 
-            Arguments:
-                element_xpath {str} -- XPATH條件
+        Arguments:
+            element_xpath {str} -- XPATH條件
 
-            Returns:
-                List[etree._Element] -- 網頁元素
+        Returns:
+            List[etree._Element] -- 網頁元素
         """
         elements = self.find_elements(element_xpath)
         return next(iter(elements or []), None)
 
     def find_elements(self, elements_xpath: str) -> List[etree._Element]:
-        """尋找符合條件的網頁元素集合
+        """
+        尋找符合條件的網頁元素集合
 
-            Arguments:
-                element_xpath {str} -- XPATH條件
+        Arguments:
+            element_xpath {str} -- XPATH條件
 
-            Returns:
-                List[etree._Element] -- 網頁元素
+        Returns:
+            List[etree._Element] -- 網頁元素
         """
         elements = self.__tree.xpath(elements_xpath)
         return elements
 
     def wait(self, at_least_seconds: int, at_most_seconds: int):
-        """暫停隨機秒數
+        """
+        暫停隨機秒數
 
-            Arguments:
-                at_least_seconds {int} -- 至少暫停秒數
-                at_most_seconds {int} -- 最多暫停秒數
+        Arguments:
+            at_least_seconds {int} -- 至少暫停秒數
+            at_most_seconds {int} -- 最多暫停秒數
         """
         time.sleep(random.randint(at_least_seconds, at_most_seconds))
