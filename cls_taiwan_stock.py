@@ -15,6 +15,7 @@ class ClsTaiwanStock():
     __current_process: int = 0
     __total_processes: int = 0
     __sheet_count: int = 8  # 每個股票要擷取的Excel表格總數
+    __task_runner = None
 
     def main(self):
         config = self.show_config_form()
@@ -22,20 +23,21 @@ class ClsTaiwanStock():
             self.__excel.open_books_directory(config.drive_letter + '\\' + config.directory_name)
             stock_list = self.get_stock_list()
             self.set_total_processes(stock_list)
-            task_runner = asyncio.get_event_loop()
-            task_runner.call_soon()
-            tasks = [self.show_running_process()]
-            tasks.append(self.get_basic_info_files(stock_list))
-            tasks.append(self.get_statment_files(stock_list, config.top_n_seasons))
-            tasks.append(self.get_analysis_files(stock_list, config.top_n_seasons))
-            tasks.append(self.get_dividend_files(stock_list, config.top_n_seasons))
-            task_runner.run_until_complete(asyncio.wait(tasks))
-            task_runner.Close()
+            self.__task_runner = asyncio.get_event_loop()
+            self.__task_runner.create_task(self.show_running_process())
+            tasks = self.__get_chained_tasks([
+                [self.get_basic_info_files, {'stock_list': stock_list}],
+                [self.get_statment_files, {'stock_list': stock_list, 'top_n_seasons': config.top_n_seasons}],
+                [self.get_analysis_files, {'stock_list': stock_list, 'top_n_seasons': config.top_n_seasons}],
+                [self.get_dividend_files, {'stock_list': stock_list, 'top_n_seasons': config.top_n_seasons}]
+                ])
+            self.__task_runner.create_task(tasks)
+            self.__task_runner.run_forever()
             self.show_popup('建立完成。')
         else:
             self.show_popup('取消建立!')
 
-    async def get_basic_info_files(self, stock_list: List[NamedTuple('stock', [('id', str), ('name', str)])]):
+    async def get_basic_info_files(self, **kwargs):
         """
         取得台股上巿股票基本資料檔案
 
@@ -80,7 +82,7 @@ class ClsTaiwanStock():
                 basic_info_list = self.__to_list(basic_info)
                 return basic_info_list
 
-        for stock in stock_list:
+        for stock in kwargs['stock_list']:
             book_path = self.__excel._books_path + '\\' + stock.id + '(' + stock.name + ')_基本資料' + '.xlsx'
             if not self.__excel.is_book_existed(book_path):
                 self.__excel.open_book(book_path)
@@ -90,6 +92,8 @@ class ClsTaiwanStock():
                 self.__excel.save_book(book_path)
                 self.__current_process += 1
                 await asyncio.sleep(0)
+        if 'next_task' in kwargs:
+            asyncio.ensure_future(kwargs['next_task'])
 
     def get_stock_list(self) -> List[NamedTuple('stock', [('id', str), ('name', str)])]:
         """
@@ -145,7 +149,7 @@ class ClsTaiwanStock():
                 periods.append(period)
         return periods
 
-    async def get_statment_files(self, stock_list: List[NamedTuple('stock', [('id', str), ('name', str)])], top_n_seasons: int):
+    async def get_statment_files(self, **kwargs):
         """
         取得資產負債表/總合損益表/股東權益表/現金流量表/財務備註內容
 
@@ -153,7 +157,7 @@ class ClsTaiwanStock():
             stock_list {List[NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
             top_n_seasons {int} -- 前n季(0=不限)
         """
-        async def get_statment_file(stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)]), table_type: str):
+        def get_statment_file(stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)]), table_type: str):
             def get_statment_table(table_type: str) -> List[str]:
                 """
                 取得表格內容
@@ -196,18 +200,20 @@ class ClsTaiwanStock():
                 self.__excel.write_to_sheet(table)
             self.__excel.save_book(book_path)
             self.__current_process += 1
-            await asyncio.sleep(0)
 
-        periods = self.__get_periods(top_n_seasons)
-        for stock in stock_list:
+        periods = self.__get_periods(kwargs['top_n_seasons'])
+        for stock in kwargs['stock_list']:
             for period in periods:
                 self.__fetcher.wait(2, 7)
                 self.__fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.year, period.season))
-                await get_statment_file(stock, period, '資產負債表')
-                await get_statment_file(stock, period, '總合損益表')
-                await get_statment_file(stock, period, '股東權益表')
-                await get_statment_file(stock, period, '現金流量表')
-                await get_statment_file(stock, period, '財務備註')
+                get_statment_file(stock, period, '資產負債表')
+                get_statment_file(stock, period, '總合損益表')
+                get_statment_file(stock, period, '股東權益表')
+                get_statment_file(stock, period, '現金流量表')
+                get_statment_file(stock, period, '財務備註')
+                await asyncio.sleep(0)
+        if 'next_task' in kwargs:
+            asyncio.ensure_future(kwargs['next_task'])
 
     def __to_list(self, source: Union[dict, etree.Element]) -> List[List[str]]:
         result = list()
@@ -225,7 +231,7 @@ class ClsTaiwanStock():
         else:
             raise ValueError('source型別只能是(dict/etree._Element)其中之一')
 
-    async def get_analysis_files(self, stock_list: List[NamedTuple('stock', [('id', str), ('name', str)])], top_n_seasons: int):
+    async def get_analysis_files(self, **kwargs):
         """
         取得財務分析
 
@@ -233,8 +239,8 @@ class ClsTaiwanStock():
             stock_list {List[NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
             top_n_seasons {int} -- 前n季(0=不限)
         """
-        periods = self.__get_periods(top_n_seasons)
-        for stock in stock_list:
+        periods = self.__get_periods(kwargs['top_n_seasons'])
+        for stock in kwargs['stock_list']:
             for period in periods:
                 self.__fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
                 table = self.__fetcher.find_elements('//table[@class="hasBorder"]')
@@ -244,8 +250,10 @@ class ClsTaiwanStock():
                 self.__excel.save_book(book_path)
                 self.__current_process += 1
                 await asyncio.sleep(0)
+        if 'next_task' in kwargs:
+            asyncio.ensure_future(kwargs['next_task'])
 
-    async def get_dividend_files(self, stock_list: List[NamedTuple('stock', [('id', str), ('name', str)])], top_n_seasons: int):
+    async def get_dividend_files(self, **kwargs):
         """
         取得股利分派情形
 
@@ -253,8 +261,8 @@ class ClsTaiwanStock():
             stock_list {List[NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
             top_n_seasons {int} -- 前n季(0=不限)
         """
-        periods = self.__get_periods(top_n_seasons)
-        for stock in stock_list:
+        periods = self.__get_periods(kwargs['top_n_seasons'])
+        for stock in kwargs['stock_list']:
             for period in periods:
                 self.__fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year))
                 table = self.__fetcher.find_elements('//table[@class="hasBorder"]')
@@ -264,6 +272,8 @@ class ClsTaiwanStock():
                 self.__excel.save_book(book_path)
                 self.__current_process += 1
                 await asyncio.sleep(0)
+        if 'next_task' in kwargs:
+            asyncio.ensure_future(kwargs['next_task'])
 
     def show_config_form(self) -> NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)]):
         """
@@ -307,7 +317,19 @@ class ClsTaiwanStock():
             window.FindElement('progressbar').UpdateBar(self.__current_process)
             window.FindElement('current_processing').Update('完成進度' + str(self.__current_process / self.__total_processes) + '%' + '/' + '100%')
             await asyncio.sleep(0)
+        self.__task_runner.stop()
         window.Close()
 
     def set_total_processes(self, stock_list: List[NamedTuple('stock', [('id', str), ('name', str)])]):
         self.__total_processes = len(stock_list) * self.__sheet_count
+
+    def __get_chained_tasks(self, tasks):
+        tasks.reverse()
+        chained_tasks = None
+        for task in tasks:
+            func = task[0]
+            param = task[1]
+            if chained_tasks is not None:
+                param['next_task'] = chained_tasks
+            chained_tasks = func(**param)
+        return chained_tasks
