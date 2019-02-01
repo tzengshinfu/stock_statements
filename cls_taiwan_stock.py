@@ -20,16 +20,16 @@ class ClsTaiwanStock():
     def main(self):
         config = self.show_config_form()
         if config.action == 'Submit':
-            self.__excel.open_books_directory(config.drive_letter + '\\' + config.directory_name)
+            self.__excel.open_books_directory(config.drive_letter + ':\\' + config.directory_name)
             stock_list = self.get_stock_list()
             self.set_total_processes(stock_list)
             self.__task_runner = asyncio.get_event_loop()
             self.__task_runner.create_task(self.show_running_process())
             tasks = self.__get_chained_tasks([
                 [self.get_basic_info_files, {'stock_list': stock_list}],
-                [self.get_statment_files, {'stock_list': stock_list, 'top_n_seasons': config.top_n_seasons}],
-                [self.get_analysis_files, {'stock_list': stock_list, 'top_n_seasons': config.top_n_seasons}],
-                [self.get_dividend_files, {'stock_list': stock_list, 'top_n_seasons': config.top_n_seasons}]
+                [self.get_statment_files, {'stock_list': stock_list, 'top_n_seasons': int(config.top_n_seasons)}],
+                [self.get_analysis_files, {'stock_list': stock_list, 'top_n_seasons': int(config.top_n_seasons)}],
+                [self.get_dividend_files, {'stock_list': stock_list, 'top_n_seasons': int(config.top_n_seasons)}]
                 ])
             self.__task_runner.create_task(tasks)
             self.__task_runner.run_forever()
@@ -317,7 +317,7 @@ class ClsTaiwanStock():
             window.FindElement('progressbar').UpdateBar(self.__current_process)
             window.FindElement('current_processing').Update('完成進度' + str(self.__current_process / self.__total_processes) + '%' + '/' + '100%')
             await asyncio.sleep(0)
-        self.__task_runner.stop()
+        # self.__task_runner.stop()
         window.Close()
 
     def set_total_processes(self, stock_list: List[NamedTuple('stock', [('id', str), ('name', str)])]):
