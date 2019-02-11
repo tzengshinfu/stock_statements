@@ -91,7 +91,7 @@ class ClsTaiwanStock():
                 self.__excel.write_to_sheet(basic_info)
                 self.__excel.save_book(book_path)
                 self.__current_process += 1
-                await asyncio.sleep(0)
+            await asyncio.sleep(0)
         if 'next_task' in kwargs:
             asyncio.ensure_future(kwargs['next_task'])
 
