@@ -10,29 +10,31 @@ import asyncio
 
 
 class ClsTaiwanStock():
-    __fetcher = ClsWebpageFetcher()
-    __excel = ClsExcelHandler()
-    __current_process: int = 0
-    __total_processes: int = 0
-    __sheet_count: int = 8  # 每個股票要擷取的Excel表格總數
-    __task_runner = None
+    def __init__(self):
+        self._fetcher = ClsWebpageFetcher()
+        self._excel = ClsExcelHandler()
+        self._current_process: int = 0
+        self._total_processes: int = 0
+        self._sheet_count: int = 8  # 每個股票要擷取的Excel表格總數
+        self._task_runner = None
+        self._current_stock_index: int = 0
 
     def main(self):
         config = self.show_config_form()
         if config.action == 'Submit':
-            self.__excel.open_books_directory(config.drive_letter + ':\\' + config.directory_name)
+            self._excel.open_books_directory(config.drive_letter + ':\\' + config.directory_name)
             stock_list = self.get_stock_list()
             self.set_total_processes(stock_list)
-            self.__task_runner = asyncio.get_event_loop()
-            self.__task_runner.create_task(self.show_running_process())
-            tasks = self.__get_chained_tasks([
+            self._task_runner = asyncio.get_event_loop()
+            self._task_runner.create_task(self.show_running_process())
+            tasks = self._get_chained_tasks([
                 [self.get_basic_info_files, {'stock_list': stock_list}],
                 [self.get_statment_files, {'stock_list': stock_list, 'top_n_seasons': int(config.top_n_seasons)}],
                 [self.get_analysis_files, {'stock_list': stock_list, 'top_n_seasons': int(config.top_n_seasons)}],
                 [self.get_dividend_files, {'stock_list': stock_list, 'top_n_seasons': int(config.top_n_seasons)}]
                 ])
-            self.__task_runner.create_task(tasks)
-            self.__task_runner.run_forever()
+            self._task_runner.create_task(tasks)
+            self._task_runner.run_forever()
             self.show_popup('建立完成。')
         else:
             self.show_popup('取消建立!')
@@ -55,8 +57,8 @@ class ClsTaiwanStock():
                     {List[List[str]]} -- 基本資料
                 """
                 basic_info = dict()
-                self.__fetcher.go_to('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + stock_id)
-                rows = self.__fetcher.find_elements('//table[@class="hasBorder"]//tr')
+                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + stock_id)
+                rows = self._fetcher.find_elements('//table[@class="hasBorder"]//tr')
                 title = ''
                 for row in rows:
                     if (row[0].text.strip() == '本公司'):
@@ -79,21 +81,25 @@ class ClsTaiwanStock():
                             else:
                                 if (cell.tag == 'td'):
                                     basic_info[title] = cell.text.strip()
-                basic_info_list = self.__to_list(basic_info)
+                basic_info_list = self._to_list(basic_info)
                 return basic_info_list
 
-        for stock in kwargs['stock_list']:
-            book_path = self.__excel._books_path + '\\' + stock.id + '(' + stock.name + ')_基本資料' + '.xlsx'
-            if not self.__excel.is_book_existed(book_path):
-                self.__excel.open_book(book_path)
-                self.__fetcher.wait(2, 7)
-                basic_info = get_basic_info(stock.id)
-                self.__excel.write_to_sheet(basic_info)
-                self.__excel.save_book(book_path)
-                self.__current_process += 1
+        stock = kwargs['stock_list'][self._current_stock_index]
+        book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_基本資料' + '.xlsx'
+        if not self._excel.is_book_existed(book_path):
+            self._excel.open_book(book_path)
+            self._fetcher.wait(1, 2)
+            basic_info = get_basic_info(stock.id)
+            self._excel.write_to_sheet(basic_info)
+            self._excel.save_book(book_path)
+        self._current_process += 1
+        self._current_stock_index += 1
+        if self._current_stock_index < (len(kwargs['stock_list']) - 1):
             await asyncio.sleep(0)
-        if 'next_task' in kwargs:
-            asyncio.ensure_future(kwargs['next_task'])
+        else:
+            self._current_stock_index = 0
+            if 'next_task' in kwargs:
+                asyncio.ensure_future(kwargs['next_task'])
 
     def get_stock_list(self) -> List[NamedTuple('stock', [('id', str), ('name', str)])]:
         """
@@ -103,8 +109,8 @@ class ClsTaiwanStock():
             {List[NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
         """
         stock_list = list()
-        self.__fetcher.go_to('http://www.twse.com.tw/zh/stockSearch/stockSearch')
-        stock_datas = self.__fetcher.find_elements('//table[@class="grid"]//a/text()')
+        self._fetcher.go_to('http://www.twse.com.tw/zh/stockSearch/stockSearch')
+        stock_datas = self._fetcher.find_elements('//table[@class="grid"]//a/text()')
         stock = NamedTuple('stock', [('id', str), ('name', str)])
         for stock_data in stock_datas:
             stock.id = stock_data[0:4]
@@ -112,7 +118,7 @@ class ClsTaiwanStock():
             stock_list.append(stock)
         return stock_list
 
-    def __get_periods(self, top_n_seasons: int = 0) -> List[NamedTuple('period', [('year', str), ('season', str)])]:
+    def _get_periods(self, top_n_seasons: int = 0) -> List[NamedTuple('period', [('year', str), ('season', str)])]:
         def get_season(month: str) -> str:
             mapping = {
                 '1': '1',
@@ -130,8 +136,8 @@ class ClsTaiwanStock():
             }
             return mapping.get(month)
 
-        self.__fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01')
-        years = self.__fetcher.find_elements('//select[@id="SYEAR"]//option/@value')
+        self._fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01')
+        years = self._fetcher.find_elements('//select[@id="SYEAR"]//option/@value')
         current_year = str(datetime.datetime.now().year)
         current_season = get_season(str(datetime.datetime.now().month))
         periods = list()
@@ -181,7 +187,7 @@ class ClsTaiwanStock():
                 else:
                     raise ValueError('table_type值只能是(資產負債表/總合損益表/股東權益表/現金流量表/財務備註)其中之一')
 
-                rows = self.__fetcher.find_elements(item_xpath)
+                rows = self._fetcher.find_elements(item_xpath)
                 records = list()
                 for row in rows:
                     record = list()
@@ -191,31 +197,36 @@ class ClsTaiwanStock():
                     records.append(record)
                 return records
 
-            book_path = self.__excel._books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
-            self.__excel.open_book(book_path)
+            book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
+            self._excel.open_book(book_path)
             sheet_name = period.year + '_' + period.season
-            if not self.__excel.is_sheet_existed(sheet_name):
-                self.__excel.open_sheet(sheet_name)
-                table = self.__get_statment_table(table_type)
-                self.__excel.write_to_sheet(table)
-            self.__excel.save_book(book_path)
-            self.__current_process += 1
+            if not self._excel.is_sheet_existed(sheet_name):
+                self._excel.open_sheet(sheet_name)
+                table = self._get_statment_table(table_type)
+                self._excel.write_to_sheet(table)
+            self._excel.save_book(book_path)
+            self._current_process += 1
 
-        periods = self.__get_periods(kwargs['top_n_seasons'])
-        for stock in kwargs['stock_list']:
-            for period in periods:
-                self.__fetcher.wait(2, 7)
-                self.__fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.year, period.season))
-                get_statment_file(stock, period, '資產負債表')
-                get_statment_file(stock, period, '總合損益表')
-                get_statment_file(stock, period, '股東權益表')
-                get_statment_file(stock, period, '現金流量表')
-                get_statment_file(stock, period, '財務備註')
-                await asyncio.sleep(0)
-        if 'next_task' in kwargs:
-            asyncio.ensure_future(kwargs['next_task'])
+        periods = self._get_periods(kwargs['top_n_seasons'])
+        stock = kwargs['stock_list'][self._current_stock_index]
+        for period in periods:
+            self._fetcher.wait(1, 2)
+            self._fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.year, period.season))
+            get_statment_file(stock, period, '資產負債表')
+            get_statment_file(stock, period, '總合損益表')
+            get_statment_file(stock, period, '股東權益表')
+            get_statment_file(stock, period, '現金流量表')
+            get_statment_file(stock, period, '財務備註')
+        self._current_process += 1
+        self._current_stock_index += 1
+        if self._current_stock_index < (len(kwargs['stock_list']) - 1):
+            await asyncio.sleep(0)
+        else:
+            self._current_stock_index = 0
+            if 'next_task' in kwargs:
+                asyncio.ensure_future(kwargs['next_task'])
 
-    def __to_list(self, source: Union[dict, etree.Element]) -> List[List[str]]:
+    def _to_list(self, source: Union[dict, etree.Element]) -> List[List[str]]:
         result = list()
         if type(source) is dict:
             for key, value in source.items():
@@ -239,19 +250,23 @@ class ClsTaiwanStock():
             stock_list {List[NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
             top_n_seasons {int} -- 前n季(0=不限)
         """
-        periods = self.__get_periods(kwargs['top_n_seasons'])
-        for stock in kwargs['stock_list']:
-            for period in periods:
-                self.__fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
-                table = self.__fetcher.find_elements('//table[@class="hasBorder"]')
-                rows = self.__to_list(table)
-                self.__excel.write_to_sheet(rows)
-                book_path = self.__excel._books_path + '\\' + stock.id + '(' + stock.name + ')_財務分析.xlsx'
-                self.__excel.save_book(book_path)
-                self.__current_process += 1
-                await asyncio.sleep(0)
-        if 'next_task' in kwargs:
-            asyncio.ensure_future(kwargs['next_task'])
+        periods = self._get_periods(kwargs['top_n_seasons'])
+        stock = kwargs['stock_list'][self._current_stock_index]
+        for period in periods:
+            self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
+            table = self._fetcher.find_elements('//table[@class="hasBorder"]')
+            rows = self._to_list(table)
+            self._excel.write_to_sheet(rows)
+            book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_財務分析.xlsx'
+            self._excel.save_book(book_path)
+        self._current_process += 1
+        self._current_stock_index += 1
+        if self._current_stock_index < (len(kwargs['stock_list']) - 1):
+            await asyncio.sleep(0)
+        else:
+            self._current_stock_index = 0
+            if 'next_task' in kwargs:
+                asyncio.ensure_future(kwargs['next_task'])
 
     async def get_dividend_files(self, **kwargs):
         """
@@ -261,19 +276,23 @@ class ClsTaiwanStock():
             stock_list {List[NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
             top_n_seasons {int} -- 前n季(0=不限)
         """
-        periods = self.__get_periods(kwargs['top_n_seasons'])
-        for stock in kwargs['stock_list']:
-            for period in periods:
-                self.__fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year))
-                table = self.__fetcher.find_elements('//table[@class="hasBorder"]')
-                rows = self.__to_list(table)
-                self.__excel.write_to_sheet(rows)
-                book_path = self.__excel._books_path + '\\' + stock.id + '(' + stock.name + ')_股利分派情形.xlsx'
-                self.__excel.save_book(book_path)
-                self.__current_process += 1
-                await asyncio.sleep(0)
-        if 'next_task' in kwargs:
-            asyncio.ensure_future(kwargs['next_task'])
+        periods = self._get_periods(kwargs['top_n_seasons'])
+        stock = kwargs['stock_list'][self._current_stock_index]
+        for period in periods:
+            self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year))
+            table = self._fetcher.find_elements('//table[@class="hasBorder"]')
+            rows = self._to_list(table)
+            self._excel.write_to_sheet(rows)
+            book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_股利分派情形.xlsx'
+            self._excel.save_book(book_path)
+        self._current_process += 1
+        self._current_stock_index += 1
+        if self._current_stock_index < (len(kwargs['stock_list']) - 1):
+            await asyncio.sleep(0)
+        else:
+            self._current_stock_index = 0
+            if 'next_task' in kwargs:
+                asyncio.ensure_future(kwargs['next_task'])
 
     def show_config_form(self) -> NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)]):
         """
@@ -305,25 +324,25 @@ class ClsTaiwanStock():
 
     async def show_running_process(self):
         form = gui.FlexForm('處理中')
-        layout = [[gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(self.__total_processes, orientation='h', size=(20, 20), key='progressbar')], [gui.Cancel()]]
+        layout = [[gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(self._total_processes, orientation='h', size=(20, 20), key='progressbar')], [gui.Cancel()]]
         window = form.Layout(layout)
         while True:
             event, values = window.Read(timeout=10)
             if event is None or event == 'Cancel':
                 gui.Popup('下載已中止')
                 raise SystemExit('使用者中止')
-            if self.__total_processes > 0 and self.__current_process > 0 and self.__total_processes == self.__current_process:
+            if self._total_processes > 0 and self._current_process > 0 and self._total_processes == self._current_process:
                 break
-            window.FindElement('progressbar').UpdateBar(self.__current_process)
-            window.FindElement('current_processing').Update('完成進度' + str(self.__current_process / self.__total_processes) + '%' + '/' + '100%')
+            window.FindElement('progressbar').UpdateBar(self._current_process)
+            window.FindElement('current_processing').Update('完成進度' + str(self._current_process / self._total_processes) + '/' + '100')
             await asyncio.sleep(0)
-        # self.__task_runner.stop()
+        self._task_runner.stop()
         window.Close()
 
     def set_total_processes(self, stock_list: List[NamedTuple('stock', [('id', str), ('name', str)])]):
-        self.__total_processes = len(stock_list) * self.__sheet_count
+        self._total_processes = len(stock_list) * self._sheet_count
 
-    def __get_chained_tasks(self, tasks):
+    def _get_chained_tasks(self, tasks):
         tasks.reverse()
         chained_tasks = None
         for task in tasks:

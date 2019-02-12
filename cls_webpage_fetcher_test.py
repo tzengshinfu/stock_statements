@@ -7,7 +7,7 @@ class ClsWebpageFetcherTest(unittest.TestCase):
 
     # region 初始方法
     def __init__(self, *args, **kwargs):
-        unittest.TestCase.__init__(self, *args, **kwargs)
+        unittest.TestCase._init_(self, *args, **kwargs)
 
     @classmethod
     def setUpClass(self):
@@ -42,10 +42,10 @@ class ClsWebpageFetcherTest(unittest.TestCase):
         self.webpage_fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format('1101', '2018'))
         table = self.webpage_fetcher.find_element('//table[@class="hasBorder"]')
         a = self.webpage_fetcher.to_list(table)
+        print(a)
 
 
-
-if __name__ == '__main__':
+if __name__ == '_main_':
     tests = ['test_to_list']
     suite = unittest.TestSuite(map(ClsWebpageFetcherTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

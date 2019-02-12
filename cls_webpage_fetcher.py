@@ -9,9 +9,9 @@ from typing import List
 
 class ClsWebpageFetcher():
     def __init__(self):
-        self.__tempdir_path = tempfile.gettempdir()
-        self.__response = None
-        self.__tree = None
+        self._tempdir_path = tempfile.gettempdir()
+        self._response = None
+        self._tree = None
 
     @retry((ConnectionError, ConnectionRefusedError), tries=3, delay=10)
     def go_to(self, url: str, method: str = 'get', data: str = None):
@@ -45,16 +45,16 @@ class ClsWebpageFetcher():
         if method == 'get':
             response = session.get(url, params=data, headers=get_browser_headers(), verify=False)
             response.encoding = response.apparent_encoding
-            self.__response = response
-            self.__tree = etree.HTML(self.__response.text)
+            self._response = response
+            self._tree = etree.HTML(self._response.text)
         elif method == 'post':
             response = session.post(url, data=data, headers=get_browser_headers(), verify=False)
             response.encoding = response.apparent_encoding
-            self.__response = response
-            self.__tree = etree.HTML(self.__response.text)
+            self._response = response
+            self._tree = etree.HTML(self._response.text)
         elif method == 'download':
             response = requests.get(url, headers=get_browser_headers(), verify=False, stream=True)
-            self.__response = response
+            self._response = response
         else:
             raise ValueError('method值只能是(get/post/download)其中之一')
 
@@ -68,10 +68,10 @@ class ClsWebpageFetcher():
         Returns:
             str -- 下載後的本機路徑
         """
-        file_path = self.__tempdir_path + '\\' + url.split('/')[-1]
+        file_path = self._tempdir_path + '\\' + url.split('/')[-1]
         self.go_to(url, 'download')
         with open(file_path, 'wb') as stream:
-            for chunk in self.__response.iter_content(chunk_size=1024):
+            for chunk in self._response.iter_content(chunk_size=1024):
                 if chunk:
                     stream.write(chunk)
         return file_path
@@ -99,7 +99,7 @@ class ClsWebpageFetcher():
         Returns:
             List[etree._Element] -- 網頁元素
         """
-        elements = self.__tree.xpath(elements_xpath)
+        elements = self._tree.xpath(elements_xpath)
         return elements
 
     def wait(self, at_least_seconds: int, at_most_seconds: int):

@@ -9,7 +9,7 @@ class ClsExcelHandlerTest(unittest.TestCase):
 
     # region 初始方法
     def __init__(self, *args, **kwargs):
-        unittest.TestCase.__init__(self, *args, **kwargs)
+        unittest.TestCase._init_(self, *args, **kwargs)
 
     @classmethod
     def setUpClass(self):
@@ -37,7 +37,7 @@ class ClsExcelHandlerTest(unittest.TestCase):
         self.excel_handler.exit()
 
     def test_paste_array_to_sheet(self):
-        self.excel_handler.__sheet.range('A1').value = [[1, 2], [3, 4], [5, 6]]
+        self.excel_handler._sheet.range('A1').value = [[1, 2], [3, 4], [5, 6]]
         self.excel_handler.save_workbook('d:\\desktop\\book.xlsx')
         self.excel_handler.exit()
 
@@ -45,7 +45,7 @@ class ClsExcelHandlerTest(unittest.TestCase):
         self.excel_handler.show_running_message()
 
 
-if __name__ == '__main__':
+if __name__ == '_main_':
     tests = ['test_show_running_message']
     suite = unittest.TestSuite(map(ClsExcelHandlerTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

@@ -11,12 +11,12 @@ class ClsExcelHandler():
     def __init__(self):
         self._books_path = tempfile.gettempdir()
 
-    def __add_book(self):
+    def _add_book(self):
         """
         新增活頁簿
         """
-        self.__book = Workbook()
-        self.__sheet = self.__book.active
+        self._book = Workbook()
+        self._sheet = self._book.active
 
     def save_book(self, book_path: str):
         """
@@ -25,7 +25,7 @@ class ClsExcelHandler():
         Arguments:
             book_path {str} -- 本機路徑
         """
-        self.__book.save(book_path)
+        self._book.save(book_path)
 
     def write_to_sheet(self, values: Union[List[List[str]], List[str], str]):
         """
@@ -37,11 +37,11 @@ class ClsExcelHandler():
         if type(values) is list:
             if type(values[0]) is list:
                 for currentIndex in range(1, len(values)):
-                    self.__sheet.append(values[currentIndex])
+                    self._sheet.append(values[currentIndex])
             else:
-                self.__sheet.append(values)
+                self._sheet.append(values)
         elif type(values) is str:
-            self.__sheet.append(values)
+            self._sheet.append(values)
         else:
             raise ValueError('values型別只能是(List[List[str]]/List[str]/str)其中之一')
 
@@ -64,19 +64,19 @@ class ClsExcelHandler():
             book_path {str} -- 本機路徑
         """
         if not self.is_book_existed(book_path):
-            self.__add_book()
+            self._add_book()
         else:
-            self.__book = load_workbook(book_path)
-            self.__sheet = self.__book.active
+            self._book = load_workbook(book_path)
+            self._sheet = self._book.active
 
-    def __add_sheet(self, sheet_name: str):
+    def _add_sheet(self, sheet_name: str):
         """
         新增工作表
 
         Arguments:
             sheet_name {str} -- 工作表名稱
         """
-        self.__book.create_sheet(sheet_name)
+        self._book.create_sheet(sheet_name)
 
     def open_sheet(self, sheet_name: str):
         """
@@ -86,8 +86,8 @@ class ClsExcelHandler():
             sheet_name {str} -- 工作表名稱
         """
         if not self.is_sheet_existed():
-            self.__add_sheet(sheet_name)
-        self.__book.active = self.__book.worksheets.index(
+            self._add_sheet(sheet_name)
+        self._book.active = self._book.worksheets.index(
             self.get_sheet_by_name(sheet_name))
 
     def is_book_existed(self, book_path: str) -> bool:
@@ -112,7 +112,7 @@ class ClsExcelHandler():
         Returns:
             bool -- 回傳結果
         """
-        if sheet_name in self.__book.sheetnames:
+        if sheet_name in self._book.sheetnames:
             return True
         else:
             return False
