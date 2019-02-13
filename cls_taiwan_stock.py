@@ -218,7 +218,7 @@ class ClsTaiwanStock():
         except Exception as ex:
             gui.Popup(ex)
 
-    async def get_analysis_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), top_n_seasons: int):
+    def get_analysis_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), top_n_seasons: int):
         """
         取得財務分析
 
@@ -235,7 +235,7 @@ class ClsTaiwanStock():
             book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_財務分析.xlsx'
             self._excel.save_book(book_path)
 
-    async def get_dividend_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), top_n_seasons: int):
+    def get_dividend_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), top_n_seasons: int):
         """
         取得股利分派情形
 
