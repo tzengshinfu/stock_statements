@@ -49,8 +49,6 @@ class ClsExcelHandler():
                 raise ValueError('values型別只能是(List[List[str]]/List[str]/str)其中之一')
         except ValueError as ex:
             gui.Popup(ex)
-        except Exception as ex:
-            gui.Popup(ex)
 
     def open_books_directory(self, books_path: str):
         """

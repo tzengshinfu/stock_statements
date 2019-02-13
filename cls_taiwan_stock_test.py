@@ -71,7 +71,7 @@ class ClsTaiwanStockTest(unittest.TestCase):
         self.taiwan_stock.show_running_process()
 
 
-if __name__ == '_main_':
+if __name__ == '__main__':
     tests = ['test_show_running_message']
     suite = unittest.TestSuite(map(ClsTaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

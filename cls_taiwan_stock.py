@@ -156,18 +156,21 @@ class ClsTaiwanStock():
                 Returns:
                     {List[str]} -- 表格內容
                 """
-                if table_type == '資產負債表':
-                    item_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
-                elif table_type == '總合損益表':
-                    item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
-                elif table_type == '現金流量表':
-                    item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
-                elif table_type == '股東權益表':
-                    item_xpath = '//table[@class="result_table1 hasBorder"]//tr[not(th)]'
-                elif table_type == '財務備註':
-                    item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
-                else:
-                    raise ValueError('table_type值只能是(資產負債表/總合損益表/股東權益表/現金流量表/財務備註)其中之一')
+                try:
+                    if table_type == '資產負債表':
+                        item_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
+                    elif table_type == '總合損益表':
+                        item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+                    elif table_type == '現金流量表':
+                        item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+                    elif table_type == '股東權益表':
+                        item_xpath = '//table[@class="result_table1 hasBorder"]//tr[not(th)]'
+                    elif table_type == '財務備註':
+                        item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+                    else:
+                        raise ValueError('table_type值只能是(資產負債表/總合損益表/股東權益表/現金流量表/財務備註)其中之一')
+                except ValueError as ex:
+                    gui.Popup(ex)
 
                 rows = self._fetcher.find_elements(item_xpath)
                 records = list()
@@ -214,8 +217,6 @@ class ClsTaiwanStock():
             else:
                 raise ValueError('source型別只能是(dict/etree._Element)其中之一')
         except ValueError as ex:
-            print(ex)
-        except Exception as ex:
             gui.Popup(ex)
 
     def get_analysis_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), top_n_seasons: int):

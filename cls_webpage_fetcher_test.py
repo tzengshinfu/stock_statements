@@ -45,7 +45,7 @@ class ClsWebpageFetcherTest(unittest.TestCase):
         print(a)
 
 
-if __name__ == '_main_':
+if __name__ == '__main__':
     tests = ['test_to_list']
     suite = unittest.TestSuite(map(ClsWebpageFetcherTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

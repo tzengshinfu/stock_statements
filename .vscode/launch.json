@@ -12,24 +12,10 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "Python: test_app_taiwan_stock.py (Integrated Terminal)",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}\\test_app_taiwan_stock.py",
-            "console": "integratedTerminal"
-        },
-        {
             "name": "Python: Current File (Integrated Terminal)",
             "type": "python",
             "request": "launch",
             "program": "${file}",
-            "console": "integratedTerminal"
-        },
-        {
-            "name": "Python: Test current File (Integrated Terminal)",
-            "type": "python",
-            "request": "launch",
-            "program": "${fileDirname}\\${fileBasenameNoExtension}_test.py",
             "console": "integratedTerminal"
         },
         {

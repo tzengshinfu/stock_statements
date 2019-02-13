@@ -60,8 +60,6 @@ class ClsWebpageFetcher():
             else:
                 raise ValueError('method值只能是(get/post/download)其中之一')
         except ValueError as ex:
-            print(ex)
-        except Exception as ex:
             gui.Popup(ex)
 
     def download_file(self, url: str) -> str:

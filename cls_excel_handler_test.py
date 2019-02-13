@@ -45,7 +45,7 @@ class ClsExcelHandlerTest(unittest.TestCase):
         self.excel_handler.show_running_message()
 
 
-if __name__ == '_main_':
+if __name__ == '__main__':
     tests = ['test_show_running_message']
     suite = unittest.TestSuite(map(ClsExcelHandlerTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
