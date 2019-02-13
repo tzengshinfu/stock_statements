@@ -5,6 +5,7 @@ import tempfile
 from typing import Union
 from typing import List
 from openpyxl import load_workbook
+import PySimpleGUI as gui
 
 
 class ClsExcelHandler():
@@ -34,16 +35,22 @@ class ClsExcelHandler():
         Arguments:
             values {Union[List[List[str]], List[str], str]} -- 要寫入的值
         """
-        if type(values) is list:
-            if type(values[0]) is list:
-                for currentIndex in range(1, len(values)):
-                    self._sheet.append(values[currentIndex])
-            else:
+        try:
+            if type(values) is list:
+                if len(values) > 0:
+                    if type(values[0]) is list:
+                        for currentIndex in range(1, len(values)):
+                            self._sheet.append(values[currentIndex])
+                    else:
+                        self._sheet.append(values)
+            elif type(values) is str:
                 self._sheet.append(values)
-        elif type(values) is str:
-            self._sheet.append(values)
-        else:
-            raise ValueError('values型別只能是(List[List[str]]/List[str]/str)其中之一')
+            else:
+                raise ValueError('values型別只能是(List[List[str]]/List[str]/str)其中之一')
+        except ValueError as ex:
+            gui.Popup(ex)
+        except Exception as ex:
+            gui.Popup(ex)
 
     def open_books_directory(self, books_path: str):
         """
@@ -85,10 +92,10 @@ class ClsExcelHandler():
         Arguments:
             sheet_name {str} -- 工作表名稱
         """
-        if not self.is_sheet_existed():
+        if not self.is_sheet_existed(sheet_name):
             self._add_sheet(sheet_name)
         self._book.active = self._book.worksheets.index(
-            self.get_sheet_by_name(sheet_name))
+            self._book.get_sheet_by_name(sheet_name))
 
     def is_book_existed(self, book_path: str) -> bool:
         """
