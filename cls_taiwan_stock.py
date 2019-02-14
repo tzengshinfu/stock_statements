@@ -6,30 +6,41 @@ from typing import List
 from typing import Union
 from typing import NamedTuple
 import PySimpleGUI as gui
+import asyncio
 
 
 class ClsTaiwanStock():
     def __init__(self):
         self._fetcher = ClsWebpageFetcher()
         self._excel = ClsExcelHandler()
+        self._task_runner = None
+        self._current_stock_count: int = 0
+        self._total_stock_count: int = 0
 
     def main(self):
         config = self.show_config_form()
         if config.action == 'Submit':
             self._excel.open_books_directory(config.drive_letter + ':\\' + config.directory_name)
             stock_list = self.get_stock_list()
+            self._task_runner = asyncio.get_event_loop()
+            self._task_runner.create_task(self.show_running_process())
             for stock in stock_list:
-                self.get_basic_info_files(stock)
-                self._fetcher.wait(1, 2)
-                self.get_statment_files(stock, int(config.top_n_seasons))
-                self._fetcher.wait(1, 2)
-                self.get_analysis_files(stock, int(config.top_n_seasons))
-                self._fetcher.wait(1, 2)
-                self.get_dividend_files(stock, int(config.top_n_seasons))
-                self._fetcher.wait(1, 2)
+                self._task_runner.create_task(self.get_stock_files(stock, int(config.top_n_seasons)))
+            self._task_runner.run
             self.show_popup('建立完成。')
         else:
             self.show_popup('取消建立!')
+
+    async def get_stock_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), top_n_seasons: int):
+        self.get_basic_info_files(stock)
+        self._fetcher.wait(1, 2)
+        self.get_statment_files(stock, top_n_seasons)
+        self._fetcher.wait(1, 2)
+        self.get_analysis_files(stock, top_n_seasons)
+        self._fetcher.wait(1, 2)
+        self.get_dividend_files(stock, top_n_seasons)
+        self._fetcher.wait(1, 2)
+        await asyncio.sleep(0)
 
     def get_basic_info_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)])):
         """
@@ -93,8 +104,8 @@ class ClsTaiwanStock():
         stock_list = list()
         self._fetcher.go_to('http://www.twse.com.tw/zh/stockSearch/stockSearch')
         stock_datas = self._fetcher.find_elements('//table[@class="grid"]//a/text()')
-        stock = NamedTuple('stock', [('id', str), ('name', str)])
         for stock_data in stock_datas:
+            stock = NamedTuple('stock', [('id', str), ('name', str)])
             stock.id = stock_data[0:4]
             stock.name = stock_data[4:]
             stock_list.append(stock)
@@ -123,7 +134,6 @@ class ClsTaiwanStock():
         current_year = str(datetime.datetime.now().year)
         current_season = get_season(str(datetime.datetime.now().month))
         periods = list()
-        period = NamedTuple('period', [('year', str), ('season', str)])
         index = 0
         for year in reversed(years):
             for season in reversed(['1', '2', '3', '4']):
@@ -132,6 +142,7 @@ class ClsTaiwanStock():
                 index += 1
                 if top_n_seasons != 0 and index > top_n_seasons:
                     return periods
+                period = NamedTuple('period', [('year', str), ('season', str)])
                 period.year = year
                 period.season = season
                 periods.append(period)
@@ -276,3 +287,20 @@ class ClsTaiwanStock():
             message {str} -- 訊息文字
         """
         gui.Popup(message)
+
+    async def show_running_process(self):
+        form = gui.FlexForm('處理中')
+        layout = [[gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(self._total_processes, orientation='h', size=(20, 20), key='progressbar')], [gui.Cancel()]]
+        window = form.Layout(layout)
+        while True:
+            event, values = window.Read(timeout=10)
+            if event is None or event == 'Cancel':
+                gui.Popup('下載已中止')
+                raise SystemExit('使用者中止')
+            if self._total_processes > 0 and self._current_process > 0 and self._total_processes == self._current_process:
+                break
+            window.FindElement('progressbar').UpdateBar(self._current_process)
+            window.FindElement('current_processing').Update('完成進度' + str(self._current_process / self._total_processes) + '/' + '100')
+            await asyncio.sleep(0)
+        self._task_runner.stop()
+        window.Close()
