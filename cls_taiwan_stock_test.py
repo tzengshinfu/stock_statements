@@ -10,7 +10,7 @@ class ClsTaiwanStockTest(unittest.TestCase):
 
     # region 初始方法
     def __init__(self, *args, **kwargs):
-        unittest.TestCase._init_(self, *args, **kwargs)
+        unittest.TestCase.__init__(self, *args, **kwargs)
 
     @classmethod
     def setUpClass(self):

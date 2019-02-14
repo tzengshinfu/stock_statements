@@ -201,23 +201,19 @@ class ClsTaiwanStock():
             get_statment_file(stock, period, '財務備註')
 
     def _to_list(self, source: Union[dict, etree.Element]) -> List[List[str]]:
-        try:
-            result = list()
-            if type(source) is dict:
-                for key, value in source.items():
-                    result.append([key, value])
-                return result
-            elif type(source) is etree._Element:
-                for row in source:
-                    record = list()
-                    for cell in row:
-                        record.append(cell.text)
-                    result.append(record)
-                return result
-            else:
-                raise ValueError('source型別只能是(dict/etree._Element)其中之一')
-        except ValueError as ex:
-            gui.Popup(ex)
+        result = list()
+        if type(source) is dict:
+            for key, value in source.items():
+                result.append([key, value])
+            return result
+        elif type(source) is etree._Element:
+            for row in source:
+                record = list()
+                for cell in row:
+                    record.append(cell.text)
+                result.append(record)
+            return result
+        return result
 
     def get_analysis_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), top_n_seasons: int):
         """
