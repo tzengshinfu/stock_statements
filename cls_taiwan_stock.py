@@ -22,16 +22,6 @@ class ClsTaiwanStock():
         else:
             self.show_popup('取消建立!')
 
-    def get_stock_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), top_n_seasons: int):
-        self.get_basic_info_files(stock)
-        self._fetcher.wait(1, 2)
-        self.get_statment_files(stock, top_n_seasons)
-        self._fetcher.wait(1, 2)
-        self.get_analysis_files(stock, top_n_seasons)
-        self._fetcher.wait(1, 2)
-        self.get_dividend_files(stock, top_n_seasons)
-        self._fetcher.wait(1, 2)
-
     def get_basic_info_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)])):
         """
         取得台股上巿股票基本資料檔案
@@ -107,49 +97,34 @@ class ClsTaiwanStock():
 
         return stock_list
 
-    def _get_periods(self, top_n_seasons: int = 0) -> List[NamedTuple('period', [('year', str), ('season', str)])]:
-        def get_season(month: str) -> str:
-            mapping = {
-                '1': '1',
-                '2': '1',
-                '3': '1',
-                '4': '2',
-                '5': '2',
-                '6': '2',
-                '7': '3',
-                '8': '3',
-                '9': '3',
-                '10': '4',
-                '11': '4',
-                '12': '4'
-            }
-
-            return mapping.get(month)
-
+    def get_periods(self, top_n_seasons: int = 0) -> List[NamedTuple('period', [('year', str), ('season', str)])]:
         self._fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01')
 
         years = self._fetcher.find_elements('//select[@id="SYEAR"]//option/@value')
-        current_year = str(datetime.datetime.now().year)
-        current_season = get_season(str(datetime.datetime.now().month))
+        current_year = datetime.datetime.now().year
 
         periods = list()
 
-        index = 0
         for year in reversed(years):
             for season in reversed(['1', '2', '3', '4']):
-                if str(year + season) < str(current_year + current_season):
-                    index += 1
+                if year <= current_year:
+                    first_season_date = datetime(year, 5, 15)
+                    second_season_date = datetime(year, 8, 14)
+                    third_season_date = datetime(year, 11, 14)
+                    fourth_season_date = datetime(year + 1, 3, 31)
 
-                    if top_n_seasons != 0 and index > top_n_seasons:
-                        return periods
+                    if ((season == 1 and datetime.datetime.now() > first_season_date) or
+                        (season == 2 and datetime.datetime.now() > second_season_date) or
+                        (season == 3 and datetime.datetime.now() > third_season_date) or
+                        (season == 4 and datetime.datetime.now() > fourth_season_date)):
+                        period = NamedTuple('period', [('year', str), ('season', str)])
+                        period.year = year
+                        period.season = season
+                        periods.append(period)
 
-                    period = NamedTuple('period', [('year', str), ('season', str)])
-                    period.year = year
-                    period.season = season
-                    periods.append(period)
         return periods
 
-    def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), top_n_seasons: int):
+    def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), periods: List[NamedTuple('period', [('year', str), ('season', str)])]):
         """
         取得資產負債表/總合損益表/股東權益表/現金流量表/財務備註內容
 
@@ -207,7 +182,6 @@ class ClsTaiwanStock():
 
             self._excel.save_book(book_path)
 
-        periods = self._get_periods(top_n_seasons)
         for period in periods:
             self._fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.year, period.season))
             get_statment_file(stock, period, '資產負債表')
@@ -233,7 +207,7 @@ class ClsTaiwanStock():
 
         return result
 
-    def get_analysis_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), top_n_seasons: int):
+    def get_analysis_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), periods: List[NamedTuple('period', [('year', str), ('season', str)])]):
         """
         取得財務分析
 
@@ -241,7 +215,6 @@ class ClsTaiwanStock():
             stock {NamedTuple('stock', [('id', str), ('name', str)])} -- 股票代號/名稱
             top_n_seasons {int} -- 前n季(0=不限)
         """
-        periods = self._get_periods(top_n_seasons)
         for period in periods:
             self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
 
@@ -252,7 +225,7 @@ class ClsTaiwanStock():
             book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_財務分析.xlsx'
             self._excel.save_book(book_path)
 
-    def get_dividend_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), top_n_seasons: int):
+    def get_dividend_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), periods: List[NamedTuple('period', [('year', str), ('season', str)])]):
         """
         取得股利分派情形
 
@@ -260,7 +233,6 @@ class ClsTaiwanStock():
             stock {NamedTuple('stock', [('id', str), ('name', str)])} -- 股票代號/名稱
             top_n_seasons {int} -- 前n季(0=不限)
         """
-        periods = self._get_periods(top_n_seasons)
         for period in periods:
             self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year))
 
@@ -305,6 +277,8 @@ class ClsTaiwanStock():
     def show_running_process(self, config: NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)])):
         stock_list = self.get_stock_list()
         total_processes = len(stock_list)
+        top_n_seasons = int(config.top_n_seasons)
+        periods = self.get_periods(top_n_seasons)
 
         form = gui.FlexForm('處理中')
         layout = [[gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(total_processes, orientation='h', size=(20, 20), key='progressbar')], [gui.Cancel()]]
@@ -320,7 +294,14 @@ class ClsTaiwanStock():
             window.FindElement('progressbar').UpdateBar(current_process)
             window.FindElement('current_processing').Update('完成進度' + str(round((current_process / total_processes * 100), 2)) + '%')
 
-            self.get_stock_files(stock, int(config.top_n_seasons))
+            self.get_basic_info_files(stock)
+            self._fetcher.wait(1, 2)
+            self.get_statment_files(stock, periods)
+            self._fetcher.wait(1, 2)
+            self.get_analysis_files(stock, periods)
+            self._fetcher.wait(1, 2)
+            self.get_dividend_files(stock, periods)
+            self._fetcher.wait(1, 2)
 
             current_process += 1
             window.FindElement('progressbar').UpdateBar(current_process)
