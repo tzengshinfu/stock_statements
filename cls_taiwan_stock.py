@@ -50,9 +50,11 @@ class ClsTaiwanStock():
                     {List[List[str]]} -- 基本資料
                 """
                 basic_info = dict()
+
                 self._fetcher.go_to('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + stock_id)
-                rows = self._fetcher.find_elements('//table[@class="hasBorder"]//tr')
+
                 title = ''
+                rows = self._fetcher.find_elements('//table[@class="hasBorder"]//tr')
                 for row in rows:
                     if (row[0].text.strip() == '本公司'):
                         basic_info[row[2].text.strip()] = row[1].text.strip()
@@ -75,6 +77,7 @@ class ClsTaiwanStock():
                                 if (cell.tag == 'td'):
                                     basic_info[title] = cell.text.strip()
                 basic_info_list = self._to_list(basic_info)
+
                 return basic_info_list
 
         book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_基本資料' + '.xlsx'
@@ -92,13 +95,16 @@ class ClsTaiwanStock():
             {List[NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
         """
         stock_list = list()
+
         self._fetcher.go_to('http://www.twse.com.tw/zh/stockSearch/stockSearch')
+
         stock_datas = self._fetcher.find_elements('//table[@class="grid"]//a/text()')
         for stock_data in stock_datas:
             stock = NamedTuple('stock', [('id', str), ('name', str)])
             stock.id = stock_data[0:4]
             stock.name = stock_data[4:]
             stock_list.append(stock)
+
         return stock_list
 
     def _get_periods(self, top_n_seasons: int = 0) -> List[NamedTuple('period', [('year', str), ('season', str)])]:
@@ -117,25 +123,30 @@ class ClsTaiwanStock():
                 '11': '4',
                 '12': '4'
             }
+
             return mapping.get(month)
 
         self._fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01')
+
         years = self._fetcher.find_elements('//select[@id="SYEAR"]//option/@value')
         current_year = str(datetime.datetime.now().year)
         current_season = get_season(str(datetime.datetime.now().month))
+
         periods = list()
+
         index = 0
         for year in reversed(years):
             for season in reversed(['1', '2', '3', '4']):
-                if str(year + season) >= str(current_year + current_season):
-                    continue
-                index += 1
-                if top_n_seasons != 0 and index > top_n_seasons:
-                    return periods
-                period = NamedTuple('period', [('year', str), ('season', str)])
-                period.year = year
-                period.season = season
-                periods.append(period)
+                if str(year + season) < str(current_year + current_season):
+                    index += 1
+
+                    if top_n_seasons != 0 and index > top_n_seasons:
+                        return periods
+
+                    period = NamedTuple('period', [('year', str), ('season', str)])
+                    period.year = year
+                    period.season = season
+                    periods.append(period)
         return periods
 
     def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), top_n_seasons: int):
@@ -173,23 +184,27 @@ class ClsTaiwanStock():
                 except ValueError as ex:
                     gui.Popup(ex)
 
-                rows = self._fetcher.find_elements(item_xpath)
                 records = list()
+
+                rows = self._fetcher.find_elements(item_xpath)
                 for row in rows:
                     record = list()
                     cells = row.xpath('./td[position() <= 2]')
                     for cell in cells:
                         record.append(cell.text)
                     records.append(record)
+
                 return records
 
             book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
             self._excel.open_book(book_path)
+
             sheet_name = period.year + '_' + period.season
             if not self._excel.is_sheet_existed(sheet_name):
                 self._excel.open_sheet(sheet_name)
                 table = get_statment_table(table_type)
                 self._excel.write_to_sheet(table)
+
             self._excel.save_book(book_path)
 
         periods = self._get_periods(top_n_seasons)
@@ -203,6 +218,7 @@ class ClsTaiwanStock():
 
     def _to_list(self, source: Union[dict, etree.Element]) -> List[List[str]]:
         result = list()
+
         if type(source) is dict:
             for key, value in source.items():
                 result.append([key, value])
@@ -214,6 +230,7 @@ class ClsTaiwanStock():
                     record.append(cell.text)
                 result.append(record)
             return result
+
         return result
 
     def get_analysis_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), top_n_seasons: int):
@@ -227,9 +244,11 @@ class ClsTaiwanStock():
         periods = self._get_periods(top_n_seasons)
         for period in periods:
             self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
+
             table = self._fetcher.find_elements('//table[@class="hasBorder"]')
             rows = self._to_list(table)
             self._excel.write_to_sheet(rows)
+
             book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_財務分析.xlsx'
             self._excel.save_book(book_path)
 
@@ -244,9 +263,11 @@ class ClsTaiwanStock():
         periods = self._get_periods(top_n_seasons)
         for period in periods:
             self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year))
+
             table = self._fetcher.find_elements('//table[@class="hasBorder"]')
             rows = self._to_list(table)
             self._excel.write_to_sheet(rows)
+
             book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_股利分派情形.xlsx'
             self._excel.save_book(book_path)
 
@@ -261,12 +282,15 @@ class ClsTaiwanStock():
         layout = [[gui.Text('請輸入下載Excel存放的磁碟代號及目錄名稱')], [gui.Text('磁碟代號', size=(15, 1), key='Drive'), gui.InputText('Z')], [gui.Text('目錄名稱', size=(15, 1), key='Folder'), gui.InputText('Excel')], [gui.Text('請輸入前n季(0=不限)')], [gui.Text('季數', size=(15, 1), key='TopNSeasons'), gui.InputText('1')], [gui.Submit(), gui.Cancel()]]
         window = form.Layout(layout)
         return_values = window.Read()
+
         window.Close()
+
         result = NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)])
         result.action = return_values[0]
         result.drive_letter = return_values[1][0]
         result.directory_name = return_values[1][1]
         result.top_n_seasons = return_values[1][2]
+
         return result
 
     def show_popup(self, message: str):
@@ -292,10 +316,14 @@ class ClsTaiwanStock():
             if event is None or event == 'Cancel':
                 gui.Popup('下載已中止')
                 raise SystemExit('使用者中止')
+
             window.FindElement('progressbar').UpdateBar(current_process)
             window.FindElement('current_processing').Update('完成進度' + str(round((current_process / total_processes * 100), 2)) + '%')
+
             self.get_stock_files(stock, int(config.top_n_seasons))
+
             current_process += 1
             window.FindElement('progressbar').UpdateBar(current_process)
             window.FindElement('current_processing').Update('完成進度' + str(round((current_process / total_processes * 100), 2)) + '%')
+
         window.Close()

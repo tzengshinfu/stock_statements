@@ -72,12 +72,14 @@ class ClsWebpageFetcher():
         Returns:
             str -- 下載後的本機路徑
         """
-        file_path = self._tempdir_path + '\\' + url.split('/')[-1]
         self.go_to(url, 'download')
+
+        file_path = self._tempdir_path + '\\' + url.split('/')[-1]
         with open(file_path, 'wb') as stream:
             for chunk in self._response.iter_content(chunk_size=1024):
                 if chunk:
                     stream.write(chunk)
+
         return file_path
 
     def find_element(self, element_xpath: str) -> List[etree._Element]:
