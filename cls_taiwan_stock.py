@@ -6,32 +6,23 @@ from typing import List
 from typing import Union
 from typing import NamedTuple
 import PySimpleGUI as gui
-import asyncio
 
 
 class ClsTaiwanStock():
     def __init__(self):
         self._fetcher = ClsWebpageFetcher()
         self._excel = ClsExcelHandler()
-        self._task_runner = None
-        self._current_stock_count: int = 0
-        self._total_stock_count: int = 0
 
     def main(self):
         config = self.show_config_form()
         if config.action == 'Submit':
             self._excel.open_books_directory(config.drive_letter + ':\\' + config.directory_name)
-            stock_list = self.get_stock_list()
-            self._task_runner = asyncio.get_event_loop()
-            self._task_runner.create_task(self.show_running_process())
-            for stock in stock_list:
-                self._task_runner.create_task(self.get_stock_files(stock, int(config.top_n_seasons)))
-            self._task_runner.run
+            self.show_running_process(config)
             self.show_popup('建立完成。')
         else:
             self.show_popup('取消建立!')
 
-    async def get_stock_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), top_n_seasons: int):
+    def get_stock_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), top_n_seasons: int):
         self.get_basic_info_files(stock)
         self._fetcher.wait(1, 2)
         self.get_statment_files(stock, top_n_seasons)
@@ -40,7 +31,6 @@ class ClsTaiwanStock():
         self._fetcher.wait(1, 2)
         self.get_dividend_files(stock, top_n_seasons)
         self._fetcher.wait(1, 2)
-        await asyncio.sleep(0)
 
     def get_basic_info_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)])):
         """
@@ -288,19 +278,24 @@ class ClsTaiwanStock():
         """
         gui.Popup(message)
 
-    async def show_running_process(self):
+    def show_running_process(self, config: NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)])):
+        stock_list = self.get_stock_list()
+        total_processes = len(stock_list)
+
         form = gui.FlexForm('處理中')
-        layout = [[gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(self._total_processes, orientation='h', size=(20, 20), key='progressbar')], [gui.Cancel()]]
+        layout = [[gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(total_processes, orientation='h', size=(20, 20), key='progressbar')], [gui.Cancel()]]
         window = form.Layout(layout)
-        while True:
+
+        current_process = 0
+        for stock in stock_list:
             event, values = window.Read(timeout=10)
             if event is None or event == 'Cancel':
                 gui.Popup('下載已中止')
                 raise SystemExit('使用者中止')
-            if self._total_processes > 0 and self._current_process > 0 and self._total_processes == self._current_process:
-                break
-            window.FindElement('progressbar').UpdateBar(self._current_process)
-            window.FindElement('current_processing').Update('完成進度' + str(self._current_process / self._total_processes) + '/' + '100')
-            await asyncio.sleep(0)
-        self._task_runner.stop()
+            window.FindElement('progressbar').UpdateBar(current_process)
+            window.FindElement('current_processing').Update('完成進度' + str(round((current_process / total_processes * 100), 2)) + '%')
+            self.get_stock_files(stock, int(config.top_n_seasons))
+            current_process += 1
+            window.FindElement('progressbar').UpdateBar(current_process)
+            window.FindElement('current_processing').Update('完成進度' + str(round((current_process / total_processes * 100), 2)) + '%')
         window.Close()
