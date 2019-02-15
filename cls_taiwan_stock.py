@@ -114,9 +114,9 @@ class ClsTaiwanStock():
                     fourth_season_date = datetime(year + 1, 3, 31)
 
                     if ((season == 1 and datetime.datetime.now() > first_season_date) or
-                        (season == 2 and datetime.datetime.now() > second_season_date) or
-                        (season == 3 and datetime.datetime.now() > third_season_date) or
-                        (season == 4 and datetime.datetime.now() > fourth_season_date)):
+                            (season == 2 and datetime.datetime.now() > second_season_date) or
+                            (season == 3 and datetime.datetime.now() > third_season_date) or
+                            (season == 4 and datetime.datetime.now() > fourth_season_date)):
                         period = NamedTuple('period', [('year', str), ('season', str)])
                         period.year = year
                         period.season = season
