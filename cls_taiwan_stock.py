@@ -107,11 +107,11 @@ class ClsTaiwanStock():
 
         for year in reversed(years):
             for season in reversed(['1', '2', '3', '4']):
-                if year <= current_year:
-                    first_season_date = datetime(year, 5, 15)
-                    second_season_date = datetime(year, 8, 14)
-                    third_season_date = datetime(year, 11, 14)
-                    fourth_season_date = datetime(year + 1, 3, 31)
+                if year <= str(current_year):
+                    first_season_date = datetime.datetime(int(year), 5, 15)
+                    second_season_date = datetime.datetime(int(year), 8, 14)
+                    third_season_date = datetime.datetime(int(year), 11, 14)
+                    fourth_season_date = datetime.datetime(int(year) + 1, 3, 31)
 
                     if ((season == 1 and datetime.datetime.now() > first_season_date) or
                             (season == 2 and datetime.datetime.now() > second_season_date) or
