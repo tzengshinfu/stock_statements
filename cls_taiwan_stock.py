@@ -288,6 +288,7 @@ class ClsTaiwanStock():
         for stock in stock_list:
             event, values = window.Read(timeout=10)
             if event is None or event == 'Cancel':
+                window.close()
                 gui.Popup('下載已中止')
                 raise SystemExit('使用者中止')
 
