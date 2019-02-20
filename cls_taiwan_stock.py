@@ -105,14 +105,16 @@ class ClsTaiwanStock():
 
         periods = list()
 
+        current_season: int = 0
         for year in reversed(years):
-            if year <= str(current_year):
+            if int(year) <= current_year:
                 first_season_date = datetime.datetime(int(year), 5, 15)
                 second_season_date = datetime.datetime(int(year), 8, 14)
                 third_season_date = datetime.datetime(int(year), 11, 14)
                 fourth_season_date = datetime.datetime(int(year) + 1, 3, 31)
 
                 for season in reversed(['1', '2', '3', '4']):
+                    if current_season < top_n_seasons:
                         if ((season == '1' and datetime.datetime.now() > first_season_date) or
                                 (season == '2' and datetime.datetime.now() > second_season_date) or
                                 (season == '3' and datetime.datetime.now() > third_season_date) or
@@ -121,6 +123,7 @@ class ClsTaiwanStock():
                             period.year = year
                             period.season = season
                             periods.append(period)
+                            current_season += 1
 
         return periods
 
@@ -297,12 +300,13 @@ class ClsTaiwanStock():
 
             self.get_basic_info_files(stock)
             self._fetcher.wait(1, 2)
-            self.get_statment_files(stock, periods)
-            self._fetcher.wait(1, 2)
-            self.get_analysis_files(stock, periods)
-            self._fetcher.wait(1, 2)
-            self.get_dividend_files(stock, periods)
-            self._fetcher.wait(1, 2)
+            for period in periods:
+                self.get_statment_files(stock, periods)
+                self._fetcher.wait(1, 2)
+                self.get_analysis_files(stock, periods)
+                self._fetcher.wait(1, 2)
+                self.get_dividend_files(stock, periods)
+                self._fetcher.wait(1, 2)
 
             current_process += 1
             window.FindElement('progressbar').UpdateBar(current_process)
