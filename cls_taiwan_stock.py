@@ -302,10 +302,23 @@ class ClsTaiwanStock():
             self._fetcher.wait(1, 2)
             for period in periods:
                 self.get_statment_files(stock, periods)
+                self._fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.year, period.season))
+                get_statment_file(stock, period, '資產負債表')
+                current_process += 1
+                get_statment_file(stock, period, '總合損益表')
+                current_process += 1
+                get_statment_file(stock, period, '股東權益表')
+                current_process += 1
+                get_statment_file(stock, period, '現金流量表')
+                current_process += 1
+                get_statment_file(stock, period, '財務備註')
+                current_process += 1
                 self._fetcher.wait(1, 2)
-                self.get_analysis_files(stock, periods)
+                self.get_analysis_files(stock, period)
+                current_process += 1
                 self._fetcher.wait(1, 2)
-                self.get_dividend_files(stock, periods)
+                self.get_dividend_files(stock, period)
+                current_process += 1
                 self._fetcher.wait(1, 2)
 
             current_process += 1
