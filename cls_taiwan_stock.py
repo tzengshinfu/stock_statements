@@ -14,13 +14,16 @@ class ClsTaiwanStock():
         self._excel = ClsExcelHandler()
 
     def main(self):
-        config = self.show_config_form()
-        if config.action == 'Submit':
-            self._excel.open_books_directory(config.drive_letter + ':\\' + config.directory_name)
-            self.show_running_process(config)
-            self.show_popup('建立完成。')
-        else:
-            self.show_popup('取消建立!')
+        try:
+            config = self.show_config_form()
+            if config.action == 'Submit':
+                self._excel.open_books_directory(config.drive_letter + ':\\' + config.directory_name)
+                self.show_running_process(config)
+                self.show_popup('建立完成。')
+            else:
+                self.show_popup('取消建立!')
+        except ValueError as ex:
+                gui.Popup(ex)
 
     def get_basic_info_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)])):
         """
@@ -127,71 +130,59 @@ class ClsTaiwanStock():
 
         return periods
 
-    def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), periods: List[NamedTuple('period', [('year', str), ('season', str)])]):
-        """
-        取得資產負債表/總合損益表/股東權益表/現金流量表/財務備註內容
+    def get_statment_file(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)]), table_type: str):
+        def get_statment_table(table_type: str) -> List[str]:
+            """
+            取得表格內容
 
-        Arguments:
-            stock {NamedTuple('stock', [('id', str), ('name', str)])} -- 股票代號/名稱
-            top_n_seasons {int} -- 前n季(0=不限)
-        """
-        def get_statment_file(stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)]), table_type: str):
-            def get_statment_table(table_type: str) -> List[str]:
-                """
-                取得表格內容
+            Arguments:
+                table_type {str} -- 股票代碼
 
-                Arguments:
-                    table_type {str} -- 股票代碼
+            Returns:
+                {List[str]} -- 表格內容
+            """
+            if table_type == '資產負債表':
+                item_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
+            elif table_type == '總合損益表':
+                item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+            elif table_type == '現金流量表':
+                item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+            elif table_type == '股東權益表':
+                item_xpath = '//table[@class="result_table1 hasBorder"]//tr[not(th)]'
+            elif table_type == '財務備註':
+                item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+            elif table_type == '財務分析':
+                item_xpath = '//table[@class="hasBorder"]'
+            elif table_type == '財利分配':
+                item_xpath = '//table[@class="hasBorder"]'
+            else:
+                raise ValueError('table_type值只能是(資產負債表/總合損益表/股東權益表/現金流量表/財務備註/財務分析/財利分配)其中之一')
 
-                Returns:
-                    {List[str]} -- 表格內容
-                """
-                try:
-                    if table_type == '資產負債表':
-                        item_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
-                    elif table_type == '總合損益表':
-                        item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
-                    elif table_type == '現金流量表':
-                        item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
-                    elif table_type == '股東權益表':
-                        item_xpath = '//table[@class="result_table1 hasBorder"]//tr[not(th)]'
-                    elif table_type == '財務備註':
-                        item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
-                    else:
-                        raise ValueError('table_type值只能是(資產負債表/總合損益表/股東權益表/現金流量表/財務備註)其中之一')
-                except ValueError as ex:
-                    gui.Popup(ex)
+            records = list()
 
-                records = list()
-
-                rows = self._fetcher.find_elements(item_xpath)
+            rows = self._fetcher.find_elements(item_xpath)
+            if (table_type == '資產負債表' or table_type == '總合損益表' or table_type == '現金流量表' or table_type == '股東權益表'
+                    or table_type == '財務備註'):
                 for row in rows:
                     record = list()
                     cells = row.xpath('./td[position() <= 2]')
                     for cell in cells:
                         record.append(cell.text)
                     records.append(record)
+            else:
+                records = self._to_list(rows)
 
-                return records
+            return records
 
-            book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
-            self._excel.open_book(book_path)
+        book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
+        self._excel.open_book(book_path)
 
-            sheet_name = period.year + '_' + period.season
-            if not self._excel.is_sheet_existed(sheet_name):
-                self._excel.open_sheet(sheet_name)
-                table = get_statment_table(table_type)
-                self._excel.write_to_sheet(table)
-
-            self._excel.save_book(book_path)
-
-        for period in periods:
-            self._fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.year, period.season))
-            get_statment_file(stock, period, '資產負債表')
-            get_statment_file(stock, period, '總合損益表')
-            get_statment_file(stock, period, '股東權益表')
-            get_statment_file(stock, period, '現金流量表')
-            get_statment_file(stock, period, '財務備註')
+        sheet_name = period.year + '_' + period.season
+        if not self._excel.is_sheet_existed(sheet_name):
+            self._excel.open_sheet(sheet_name)
+            table = get_statment_table(table_type)
+            self._excel.write_to_sheet(table)
+        self._excel.save_book(book_path)
 
     def _to_list(self, source: Union[dict, etree.Element]) -> List[List[str]]:
         result = list()
@@ -209,42 +200,6 @@ class ClsTaiwanStock():
             return result
 
         return result
-
-    def get_analysis_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), periods: List[NamedTuple('period', [('year', str), ('season', str)])]):
-        """
-        取得財務分析
-
-        Arguments:
-            stock {NamedTuple('stock', [('id', str), ('name', str)])} -- 股票代號/名稱
-            top_n_seasons {int} -- 前n季(0=不限)
-        """
-        for period in periods:
-            self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
-
-            table = self._fetcher.find_elements('//table[@class="hasBorder"]')
-            rows = self._to_list(table)
-            self._excel.write_to_sheet(rows)
-
-            book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_財務分析.xlsx'
-            self._excel.save_book(book_path)
-
-    def get_dividend_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), periods: List[NamedTuple('period', [('year', str), ('season', str)])]):
-        """
-        取得股利分派情形
-
-        Arguments:
-            stock {NamedTuple('stock', [('id', str), ('name', str)])} -- 股票代號/名稱
-            top_n_seasons {int} -- 前n季(0=不限)
-        """
-        for period in periods:
-            self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year))
-
-            table = self._fetcher.find_elements('//table[@class="hasBorder"]')
-            rows = self._to_list(table)
-            self._excel.write_to_sheet(rows)
-
-            book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_股利分派情形.xlsx'
-            self._excel.save_book(book_path)
 
     def show_config_form(self) -> NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)]):
         """
@@ -279,12 +234,13 @@ class ClsTaiwanStock():
 
     def show_running_process(self, config: NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)])):
         stock_list = self.get_stock_list()
-        total_processes = len(stock_list)
+        stock_count = len(stock_list)
         top_n_seasons = int(config.top_n_seasons)
         periods = self.get_periods(top_n_seasons)
+        period_count = len(periods)
 
         form = gui.FlexForm('處理中')
-        layout = [[gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(total_processes, orientation='h', size=(20, 20), key='progressbar')], [gui.Cancel()]]
+        layout = [[gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(stock_count, orientation='h', size=(20, 20), key='progressbar')], [gui.Cancel()]]
         window = form.Layout(layout)
 
         current_process = 0
@@ -296,7 +252,7 @@ class ClsTaiwanStock():
                 raise SystemExit('使用者中止')
 
             window.FindElement('progressbar').UpdateBar(current_process)
-            window.FindElement('current_processing').Update('完成進度' + str(round((current_process / total_processes * 100), 2)) + '%')
+            window.FindElement('current_processing').Update('完成進度' + str(round((current_process / stock_count * 100), 2)) + '%')
 
             self.get_basic_info_files(stock)
             self._fetcher.wait(1, 2)
@@ -314,6 +270,7 @@ class ClsTaiwanStock():
                 get_statment_file(stock, period, '財務備註')
                 current_process += 1
                 self._fetcher.wait(1, 2)
+                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
                 self.get_analysis_files(stock, period)
                 current_process += 1
                 self._fetcher.wait(1, 2)
@@ -323,6 +280,6 @@ class ClsTaiwanStock():
 
             current_process += 1
             window.FindElement('progressbar').UpdateBar(current_process)
-            window.FindElement('current_processing').Update('完成進度' + str(round((current_process / total_processes * 100), 2)) + '%')
+            window.FindElement('current_processing').Update('完成進度' + str(round((current_process / stock_count * 100), 2)) + '%')
 
         window.Close()
