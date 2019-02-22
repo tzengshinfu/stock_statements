@@ -154,10 +154,10 @@ class ClsTaiwanStock():
                 item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
             elif table_type == '財務分析':
                 item_xpath = '//table[@class="hasBorder"]'
-            elif table_type == '財利分配':
+            elif table_type == '股利分配':
                 item_xpath = '//table[@class="hasBorder"]'
             else:
-                raise ValueError('table_type值只能是(資產負債表/總合損益表/股東權益表/現金流量表/財務備註/財務分析/財利分配)其中之一')
+                raise ValueError('table_type值只能是(資產負債表/總合損益表/股東權益表/現金流量表/財務備註/財務分析/股利分配)其中之一')
 
             records = list()
 
@@ -234,26 +234,22 @@ class ClsTaiwanStock():
         gui.Popup(message)
 
     def show_running_process(self, config: NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)])):
+        def update_process(window, current_process_count, total_process_count):
+            window.FindElement('progressbar').UpdateBar(current_process_count)
+            window.FindElement('current_processing').Update('完成進度' + str(round((current_process_count / total_process_count * 100), 2)) + '%')
+
         stock_list = self.get_stock_list()
         stock_count = len(stock_list)
         top_n_seasons = int(config.top_n_seasons)
         periods = self.get_periods(top_n_seasons)
         period_count = len(periods)
-        total_process_count = stock_count + (
-            stock_count * period_count * self._statment_file_count)
+        total_process_count = stock_count + (stock_count * period_count * self._statment_file_count)
 
         form = gui.FlexForm('處理中')
-        layout = [[gui.Text('完成進度', key='current_processing')],
-                  [
-                      gui.ProgressBar(
-                          total_process_count,
-                          orientation='h',
-                          size=(20, 20),
-                          key='progressbar')
-                  ], [gui.Cancel()]]
+        layout = [[gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(total_process_count, orientation='h', size=(20, 20), key='progressbar') ], [gui.Cancel()]]
         window = form.Layout(layout)
 
-        current_process = 0
+        current_process_count = 0
         for stock in stock_list:
             event, values = window.Read(timeout=10)
             if event is None or event == 'Cancel':
@@ -261,35 +257,43 @@ class ClsTaiwanStock():
                 gui.Popup('下載已中止')
                 raise SystemExit('使用者中止')
 
-            window.FindElement('progressbar').UpdateBar(current_process)
-            window.FindElement('current_processing').Update('完成進度' + str(round((current_process / stock_count * 100), 2)) + '%')
+            update_process(window, current_process_count, total_process_count)
 
             self.get_basic_info_files(stock)
-            self._fetcher.wait(1, 2)
-            for period in periods:
-                self.get_statment_files(stock, periods)
-                self._fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.year, period.season))
-                get_statment_file(stock, period, '資產負債表')
-                current_process += 1
-                get_statment_file(stock, period, '總合損益表')
-                current_process += 1
-                get_statment_file(stock, period, '股東權益表')
-                current_process += 1
-                get_statment_file(stock, period, '現金流量表')
-                current_process += 1
-                get_statment_file(stock, period, '財務備註')
-                current_process += 1
-                self._fetcher.wait(1, 2)
-                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
-                self.get_analysis_files(stock, period)
-                current_process += 1
-                self._fetcher.wait(1, 2)
-                self.get_dividend_files(stock, period)
-                current_process += 1
-                self._fetcher.wait(1, 2)
+            current_process_count += 1
+            update_process(window, current_process_count, total_process_count)
 
-            current_process += 1
-            window.FindElement('progressbar').UpdateBar(current_process)
-            window.FindElement('current_processing').Update('完成進度' + str(round((current_process / stock_count * 100), 2)) + '%')
+            for period in periods:
+                self._fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.year, period.season))
+
+                self.get_statment_file(stock, period, '資產負債表')
+                current_process_count += 1
+                update_process(window, current_process_count, total_process_count)
+
+                self.get_statment_file(stock, period, '總合損益表')
+                current_process_count += 1
+                update_process(window, current_process_count, total_process_count)
+
+                self.get_statment_file(stock, period, '股東權益表')
+                current_process_count += 1
+                update_process(window, current_process_count, total_process_count)
+
+                self.get_statment_file(stock, period, '現金流量表')
+                current_process_count += 1
+                update_process(window, current_process_count, total_process_count)
+
+                self.get_statment_file(stock, period, '財務備註')
+                current_process_count += 1
+                update_process(window, current_process_count, total_process_count)
+
+                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
+
+                self.get_statment_file(stock, period, '財務分析')
+                current_process_count += 1
+                update_process(window, current_process_count, total_process_count)
+
+                self.get_statment_file(stock, period, '股利分配')
+                current_process_count += 1
+                update_process(window, current_process_count, total_process_count)
 
         window.Close()
