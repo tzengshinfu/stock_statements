@@ -5,7 +5,6 @@ import tempfile
 from typing import Union
 from typing import List
 from openpyxl import load_workbook
-import PySimpleGUI as gui
 
 
 class ClsExcelHandler():

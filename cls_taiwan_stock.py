@@ -12,6 +12,7 @@ class ClsTaiwanStock():
     def __init__(self):
         self._fetcher = ClsWebpageFetcher()
         self._excel = ClsExcelHandler()
+        self._statment_file_count: int = 7  # 資產負債表/總合損益表/股東權益表/現金流量表/財務備註/財務分析/財利分配
 
     def main(self):
         try:
@@ -23,7 +24,7 @@ class ClsTaiwanStock():
             else:
                 self.show_popup('取消建立!')
         except ValueError as ex:
-                gui.Popup(ex)
+            gui.Popup(ex)
 
     def get_basic_info_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)])):
         """
@@ -33,7 +34,7 @@ class ClsTaiwanStock():
             stock {NamedTuple('stock', [('id', str), ('name', str)])} -- 股票代號/名稱
         """
         def get_basic_info(stock_id: str) -> List[List[str]]:
-                """
+            """
                 取得台股上巿股票基本資料
 
                 Arguments:
@@ -42,36 +43,36 @@ class ClsTaiwanStock():
                 Returns:
                     {List[List[str]]} -- 基本資料
                 """
-                basic_info = dict()
+            basic_info = dict()
 
-                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + stock_id)
+            self._fetcher.go_to('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + stock_id)
 
-                title = ''
-                rows = self._fetcher.find_elements('//table[@class="hasBorder"]//tr')
-                for row in rows:
-                    if (row[0].text.strip() == '本公司'):
-                        basic_info[row[2].text.strip()] = row[1].text.strip()
-                        basic_info[row[5].text.strip()] = row[4].text.strip()
-                    if (row[0].text.strip() == '本公司採'):
-                        basic_info['會計年度月制(現)'] = row[1].text.strip()
-                    if (row[0].text.strip() == '本公司於'):
-                        basic_info['會計年度月制(前)'] = row[3].text.strip()
-                        basic_info['會計年度月制轉換'] = row[1].text.strip()
-                    if (row[0].text.strip() == '編製財務報告類型'):
-                        report_type = row[1].text.strip()
-                        basic_info[row[0].text.strip()] = report_type[1:3] if report_type[0] == '●' else report_type[4:6]
-                    else:
-                        for index, cell in enumerate(row, start=1):
-                            if (index % 2 == 1):
-                                if (cell.tag == 'th'):
-                                    title = cell.text.strip()
-                                    basic_info[title] = ''
-                            else:
-                                if (cell.tag == 'td'):
-                                    basic_info[title] = cell.text.strip()
-                basic_info_list = self._to_list(basic_info)
+            title = ''
+            rows = self._fetcher.find_elements('//table[@class="hasBorder"]//tr')
+            for row in rows:
+                if (row[0].text.strip() == '本公司'):
+                    basic_info[row[2].text.strip()] = row[1].text.strip()
+                    basic_info[row[5].text.strip()] = row[4].text.strip()
+                if (row[0].text.strip() == '本公司採'):
+                    basic_info['會計年度月制(現)'] = row[1].text.strip()
+                if (row[0].text.strip() == '本公司於'):
+                    basic_info['會計年度月制(前)'] = row[3].text.strip()
+                    basic_info['會計年度月制轉換'] = row[1].text.strip()
+                if (row[0].text.strip() == '編製財務報告類型'):
+                    report_type = row[1].text.strip()
+                    basic_info[row[0].text.strip()] = report_type[1:3] if report_type[0] == '●' else report_type[4:6]
+                else:
+                    for index, cell in enumerate(row, start=1):
+                        if (index % 2 == 1):
+                            if (cell.tag == 'th'):
+                                title = cell.text.strip()
+                                basic_info[title] = ''
+                        else:
+                            if (cell.tag == 'td'):
+                                basic_info[title] = cell.text.strip()
+            basic_info_list = self._to_list(basic_info)
 
-                return basic_info_list
+            return basic_info_list
 
         book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_基本資料' + '.xlsx'
         if not self._excel.is_book_existed(book_path):
@@ -238,9 +239,18 @@ class ClsTaiwanStock():
         top_n_seasons = int(config.top_n_seasons)
         periods = self.get_periods(top_n_seasons)
         period_count = len(periods)
+        total_process_count = stock_count + (
+            stock_count * period_count * self._statment_file_count)
 
         form = gui.FlexForm('處理中')
-        layout = [[gui.Text('完成進度', key='current_processing')], [gui.ProgressBar(stock_count, orientation='h', size=(20, 20), key='progressbar')], [gui.Cancel()]]
+        layout = [[gui.Text('完成進度', key='current_processing')],
+                  [
+                      gui.ProgressBar(
+                          total_process_count,
+                          orientation='h',
+                          size=(20, 20),
+                          key='progressbar')
+                  ], [gui.Cancel()]]
         window = form.Layout(layout)
 
         current_process = 0

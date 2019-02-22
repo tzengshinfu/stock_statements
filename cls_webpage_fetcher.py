@@ -5,7 +5,6 @@ from retry import retry
 import time
 import random
 from typing import List
-import PySimpleGUI as gui
 
 
 class ClsWebpageFetcher():
@@ -44,17 +43,20 @@ class ClsWebpageFetcher():
         session.keep_alive = False
 
         if method == 'get':
-            response = session.get(url, params=data, headers=get_browser_headers(), verify=False)
+            response = session.get(
+                url, params=data, headers=get_browser_headers(), verify=False)
             response.encoding = response.apparent_encoding
             self._response = response
             self._tree = etree.HTML(self._response.text)
         elif method == 'post':
-            response = session.post(url, data=data, headers=get_browser_headers(), verify=False)
+            response = session.post(
+                url, data=data, headers=get_browser_headers(), verify=False)
             response.encoding = response.apparent_encoding
             self._response = response
             self._tree = etree.HTML(self._response.text)
         elif method == 'download':
-            response = requests.get(url, headers=get_browser_headers(), verify=False, stream=True)
+            response = requests.get(
+                url, headers=get_browser_headers(), verify=False, stream=True)
             self._response = response
         else:
             raise ValueError('method值只能是(get/post/download)其中之一')
