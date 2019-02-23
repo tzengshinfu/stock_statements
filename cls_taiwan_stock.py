@@ -264,17 +264,14 @@ class ClsTaiwanStock():
                 self.get_statment_file(stock, period, '股利分配')
 
 
-def show_current_process(func):
-    @wraps(func)
+def show_current_process(function):
+    @wraps(function)
     def wrapper(self, *args, **kwargs):
-        print('完成進度:' + str(
-            round((self._current_process_count / self._total_process_count *
-                    100), 2)) + '%')
-        f = func(self, *args, **kwargs)
+        print('完成進度:' + str(round((self._current_process_count / self._total_process_count * 100), 2)) + '%')
+        func = function(self, *args, **kwargs)
         self._current_count += 1
-        print('完成進度:' + str(
-            round((self._current_process_count /
-                    self._total_process_count * 100), 2)) + '%')
-        return f
+        print('完成進度:' + str(round((self._current_process_count / self._total_process_count * 100), 2)) + '%')
+
+        return func
 
     return wrapper
