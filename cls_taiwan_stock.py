@@ -29,6 +29,22 @@ class ClsTaiwanStock():
         except ValueError as ex:
             gui.Popup(ex)
 
+    def show_current_process(function):
+        @wraps(function)
+        def wrapper(self, *args, **kwargs):
+            print('完成進度:' + str(
+                round((self._current_process_count /
+                       self._total_process_count * 100), 2)) + '%')
+            func = function(self, *args, **kwargs)
+            self._current_count += 1
+            print('完成進度:' + str(
+                round((self._current_process_count /
+                       self._total_process_count * 100), 2)) + '%')
+
+            return func
+
+        return wrapper
+
     @show_current_process
     def get_basic_info_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)])):
         """
@@ -262,16 +278,3 @@ class ClsTaiwanStock():
 
                 self.get_statment_file(stock, period, '財務分析')
                 self.get_statment_file(stock, period, '股利分配')
-
-
-def show_current_process(function):
-    @wraps(function)
-    def wrapper(self, *args, **kwargs):
-        print('完成進度:' + str(round((self._current_process_count / self._total_process_count * 100), 2)) + '%')
-        func = function(self, *args, **kwargs)
-        self._current_count += 1
-        print('完成進度:' + str(round((self._current_process_count / self._total_process_count * 100), 2)) + '%')
-
-        return func
-
-    return wrapper
