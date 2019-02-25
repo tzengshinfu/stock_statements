@@ -36,7 +36,7 @@ class ClsTaiwanStock():
                 round((self._current_process_count /
                        self._total_process_count * 100), 2)) + '%')
             func = function(self, *args, **kwargs)
-            self._current_count += 1
+            self._current_process_count += 1
             print('完成進度:' + str(
                 round((self._current_process_count /
                        self._total_process_count * 100), 2)) + '%')
