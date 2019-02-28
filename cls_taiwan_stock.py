@@ -129,7 +129,6 @@ class ClsTaiwanStock():
 
         periods = list()
 
-        current_season: int = 0
         for year in reversed(years):
             if int(year) <= current_year:
                 first_season_date = datetime.datetime(int(year), 5, 15)
@@ -138,7 +137,6 @@ class ClsTaiwanStock():
                 fourth_season_date = datetime.datetime(int(year) + 1, 3, 31)
 
                 for season in reversed(['1', '2', '3', '4']):
-                    if current_season < top_n_seasons:
                         if ((season == '1' and datetime.datetime.now() > first_season_date) or
                                 (season == '2' and datetime.datetime.now() > second_season_date) or
                                 (season == '3' and datetime.datetime.now() > third_season_date) or
@@ -147,9 +145,8 @@ class ClsTaiwanStock():
                             period.year = year
                             period.season = season
                             periods.append(period)
-                            current_season += 1
 
-        return periods
+        return periods[0:top_n_seasons]
 
     @show_current_process
     def get_statment_file(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)]), table_type: str):
