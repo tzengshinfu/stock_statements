@@ -177,10 +177,10 @@ class ClsTaiwanStock():
                 cell_xpath = './td[position() <= 2]'
             elif table_type == '財務分析':
                 row_xpath = '//table[position() = 1 and not(@class)]//tr'
-                cell_xpath = '//*'
+                cell_xpath = './*'
             elif table_type == '股利分配':
-                row_xpath = '//table[@class="hasBorder"]//tr[not(th)]'
-                cell_xpath = '//*'
+                row_xpath = '//table[@class="hasBorder"]//tr'
+                cell_xpath = './*'
             else:
                 raise ValueError('table_type值只能是(資產負債表/總合損益表/股東權益表/現金流量表/財報附註/財務分析/股利分配)其中之一')
 
@@ -279,6 +279,6 @@ class ClsTaiwanStock():
 
                 self.get_statment_file(stock, period, '財務分析')
 
-                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year))
+                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, str(int(period.year) - 1911)))
 
                 self.get_statment_file(stock, period, '股利分配')
