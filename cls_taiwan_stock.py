@@ -161,35 +161,39 @@ class ClsTaiwanStock():
                 {List[str]} -- 表格內容
             """
             if table_type == '資產負債表':
-                item_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
+                row_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
+                cell_xpath = './td[position() <= 2]'
             elif table_type == '總合損益表':
-                item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+                row_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+                cell_xpath = './td[position() <= 2]'
             elif table_type == '現金流量表':
-                item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+                row_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+                cell_xpath = './td[position() <= 2]'
             elif table_type == '股東權益表':
-                item_xpath = '//table[@class="result_table1 hasBorder"]//tr[not(th)]'
+                row_xpath = '//table[@class="result_table1 hasBorder"]//tr[not(th)]'
+                cell_xpath = './td[position() <= 2]'
             elif table_type == '財報附註':
-                item_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+                row_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+                cell_xpath = './td[position() <= 2]'
             elif table_type == '財務分析':
-                item_xpath = '//div[@id="table01"]//table[@style="width:90%;"]'
+                row_xpath = '//table[position() = 1 and not(@class)]//tr'
+                cell_xpath = '//*'
             elif table_type == '股利分配':
-                item_xpath = '//div[@id="table01"]//table[@class="hasBorder"]'
+                row_xpath = '//table[@class="hasBorder"]//tr[not(th)]'
+                cell_xpath = '//*'
             else:
                 raise ValueError('table_type值只能是(資產負債表/總合損益表/股東權益表/現金流量表/財報附註/財務分析/股利分配)其中之一')
 
             records = list()
 
-            rows = self._fetcher.find_elements(item_xpath)
-            if (table_type == '資產負債表' or table_type == '總合損益表' or table_type == '現金流量表' or table_type == '股東權益表'
-                    or table_type == '財報附註'):
-                for row in rows:
-                    record = list()
-                    cells = row.xpath('./td[position() <= 2]')
-                    for cell in cells:
-                        record.append(cell.text)
-                    records.append(record)
-            else:
-                records = self._to_list(rows)
+            rows = self._fetcher.find_elements(row_xpath)
+
+            for row in rows:
+                record = list()
+                cells = row.xpath(cell_xpath)
+                for cell in cells:
+                    record.append(cell.text)
+                records.append(record)
 
             return records
 
@@ -271,7 +275,7 @@ class ClsTaiwanStock():
                 self.get_statment_file(stock, period, '現金流量表')
                 self.get_statment_file(stock, period, '財報附註')
 
-                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year))
+                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, str(int(period.year) - 1911)))
 
                 self.get_statment_file(stock, period, '財務分析')
 
