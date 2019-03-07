@@ -164,16 +164,16 @@ class ClsTaiwanStock():
                 row_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
                 cell_xpath = './td[position() <= 2]'
             elif table_type == '總合損益表':
-                row_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+                row_xpath = '//table[@class="main_table hasBorder" and position() = 1]//tr[not(th)]'
                 cell_xpath = './td[position() <= 2]'
             elif table_type == '現金流量表':
-                row_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+                row_xpath = '//table[@class="main_table hasBorder" and position() = 2]//tr[not(th)]'
                 cell_xpath = './td[position() <= 2]'
             elif table_type == '股東權益表':
-                row_xpath = '//table[@class="result_table1 hasBorder"]//tr[not(th)]'
-                cell_xpath = './td[position() <= 2]'
+                row_xpath = '//table[@class="result_table1 hasBorder"]//tr'
+                cell_xpath = './*'
             elif table_type == '財報附註':
-                row_xpath = '//table[@class="main_table hasBorder"]//tr[not(th)]'
+                row_xpath = '//table[@class="main_table hasBorder" and position() = 4]//tr[not(th)]'
                 cell_xpath = './td[position() <= 2]'
             elif table_type == '財務分析':
                 row_xpath = '//table[position() = 1 and not(@class)]//tr'
@@ -256,7 +256,7 @@ class ClsTaiwanStock():
         gui.Popup(message)
 
     def show_running_process(self, config: NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)])):
-        stock_list = self.get_stock_list()
+        stock_list = self.get_stock_list()[0:1]
         stock_count = len(stock_list)
         top_n_seasons = int(config.top_n_seasons)
         periods = self.get_periods(top_n_seasons)
