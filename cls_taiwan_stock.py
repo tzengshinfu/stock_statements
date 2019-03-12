@@ -162,7 +162,7 @@ class ClsTaiwanStock():
             """
             if table_type == '資產負債表':
                 row_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
-                cell_xpath = './td[position() <= 2]'
+                cell_xpath = './td[position() <= 3]'
             elif table_type == '總合損益表':
                 row_xpath = '//table[@class="main_table hasBorder" and position() = 1]//tr[not(th)]'
                 cell_xpath = './td[position() <= 2]'
@@ -267,12 +267,24 @@ class ClsTaiwanStock():
             self.get_basic_info_files(stock)
 
             for period in periods:
-                self._fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.year, period.season))
 
+                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t164sb03', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=false&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season))
+                # encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id=1101&year=107&season=03
                 self.get_statment_file(stock, period, '資產負債表')
+
+                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t164sb04', 'post', data='')
+                # encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id=1101&year=107&season=03
                 self.get_statment_file(stock, period, '總合損益表')
-                self.get_statment_file(stock, period, '股東權益表')
+                
+                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t164sb05', 'post', data='')
+                # encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id=1101&year=107&season=03
                 self.get_statment_file(stock, period, '現金流量表')
+
+                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t164sb06', 'post', data='')
+                # encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id=1101&year=107&season=03
+                self.get_statment_file(stock, period, '股東權益表')
+
+                self._fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.year, period.season))
                 self.get_statment_file(stock, period, '財報附註')
 
                 self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, str(int(period.year) - 1911)))
