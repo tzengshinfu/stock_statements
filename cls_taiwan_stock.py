@@ -22,7 +22,7 @@ class ClsTaiwanStock():
             config = self.show_config_form()
             if config.action == 'Submit':
                 self._excel.open_books_directory(config.drive_letter + ':\\' + config.directory_name)
-                self.show_running_process(config)
+                self.get_stock_files(config)
                 self.show_popup('建立完成。')
             else:
                 self.show_popup('取消建立!')
@@ -136,21 +136,21 @@ class ClsTaiwanStock():
                 third_season_date = datetime.datetime(int(year), 11, 14)
                 fourth_season_date = datetime.datetime(int(year) + 1, 3, 31)
 
-                for season in reversed(['1', '2', '3', '4']):
-                        if ((season == '1' and datetime.datetime.now() > first_season_date) or
-                                (season == '2' and datetime.datetime.now() > second_season_date) or
-                                (season == '3' and datetime.datetime.now() > third_season_date) or
-                                (season == '4' and datetime.datetime.now() > fourth_season_date)):
+                for season in reversed(['01', '02', '03', '04']):
+                        if ((season == '01' and datetime.datetime.now() > first_season_date) or
+                                (season == '02' and datetime.datetime.now() > second_season_date) or
+                                (season == '03' and datetime.datetime.now() > third_season_date) or
+                                (season == '04' and datetime.datetime.now() > fourth_season_date)):
                             period = NamedTuple('period', [('year', str), ('season', str)])
-                            period.year = year
+                            period.year = str(int(year) - 1911)
                             period.season = season
                             periods.append(period)
 
         return periods[0:top_n_seasons]
 
     @show_current_process
-    def get_statment_file(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)]), table_type: str):
-        def get_statment_table(table_type: str) -> List[str]:
+    def get_statment_file(self, table_type: str, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)])):
+        def get_statment_table(table_type: str, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)])) -> List[str]:
             """
             取得表格內容
 
@@ -163,29 +163,44 @@ class ClsTaiwanStock():
             if table_type == '資產負債表':
                 row_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
                 cell_xpath = './td[position() <= 3]'
+                url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb03'
+                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season)
             elif table_type == '總合損益表':
                 row_xpath = '//table[@class="main_table hasBorder" and position() = 1]//tr[not(th)]'
                 cell_xpath = './td[position() <= 2]'
+                url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb04'
+                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season)
             elif table_type == '現金流量表':
                 row_xpath = '//table[@class="main_table hasBorder" and position() = 2]//tr[not(th)]'
                 cell_xpath = './td[position() <= 2]'
+                url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb05'
+                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season)
             elif table_type == '權益變動表':
                 row_xpath = '//table[@class="result_table1 hasBorder"]//tr'
                 cell_xpath = './*'
+                url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb06'
+                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season)
             elif table_type == '財報附註':
                 row_xpath = '//table[@class="main_table hasBorder" and position() = 4]//tr[not(th)]'
                 cell_xpath = './td[position() <= 2]'
+                url = 'http://mops.twse.com.tw/server-java/t164sb01'
+                data = 'step=1&CO_ID={0}&SYEAR=2018&SSEASON=3&REPORT_ID=C'.format(stock.id, str(int(period.year) + 1911), period.season.replace("0", ""))
             elif table_type == '財務分析':
                 row_xpath = '//table[position() = 1 and not(@class)]//tr'
                 cell_xpath = './*'
+                url = 'http://mops.twse.com.tw/mops/web/ajax_t05st22'
+                data = 'encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year)
             elif table_type == '股利分配':
                 row_xpath = '//table[@class="hasBorder"]//tr'
                 cell_xpath = './*'
+                url = 'http://mops.twse.com.tw/mops/web/ajax_t05st09'
+                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year)
             else:
                 raise ValueError('table_type值只能是(資產負債表/總合損益表/權益變動表/現金流量表/財報附註/財務分析/股利分配)其中之一')
 
             records = list()
 
+            self._fetcher.go_to(url, 'post', data)
             rows = self._fetcher.find_elements(row_xpath)
 
             for row in rows:
@@ -203,7 +218,7 @@ class ClsTaiwanStock():
         sheet_name = period.year + '_' + period.season
         if not self._excel.is_sheet_existed(sheet_name):
             self._excel.open_sheet(sheet_name)
-            table = get_statment_table(table_type)
+            table = get_statment_table(table_type, stock, period)
             self._excel.write_to_sheet(table)
         self._excel.save_book(book_path)
 
@@ -255,7 +270,7 @@ class ClsTaiwanStock():
         """
         gui.Popup(message)
 
-    def show_running_process(self, config: NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)])):
+    def get_stock_files(self, config: NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)])):
         stock_list = self.get_stock_list()[0:1]
         stock_count = len(stock_list)
         top_n_seasons = int(config.top_n_seasons)
@@ -267,30 +282,10 @@ class ClsTaiwanStock():
             self.get_basic_info_files(stock)
 
             for period in periods:
-
-                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t164sb03', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=false&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season))
-                # encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id=1101&year=107&season=03
-                self.get_statment_file(stock, period, '資產負債表')
-
-                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t164sb04', 'post', data='')
-                # encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id=1101&year=107&season=03
-                self.get_statment_file(stock, period, '總合損益表')
-
-                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t164sb05', 'post', data='')
-                # encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id=1101&year=107&season=03
-                self.get_statment_file(stock, period, '現金流量表')
-
-                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t164sb06', 'post', data='')
-                # encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id=1101&year=107&season=03
-                self.get_statment_file(stock, period, '權益變動表')
-
-                self._fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01?step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.year, period.season))
-                self.get_statment_file(stock, period, '財報附註')
-
-                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st22', 'post', data='encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, str(int(period.year) - 1911)))
-
-                self.get_statment_file(stock, period, '財務分析')
-
-                self._fetcher.go_to('http://mops.twse.com.tw/mops/web/ajax_t05st09', 'post', data='encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, str(int(period.year) - 1911)))
-
-                self.get_statment_file(stock, period, '股利分配')
+                self.get_statment_file('資產負債表', stock, period)
+                self.get_statment_file('總合損益表', stock, period)
+                self.get_statment_file('現金流量表', stock, period)
+                self.get_statment_file('權益變動表', stock, period)
+                self.get_statment_file('財報附註', stock, period)
+                self.get_statment_file('財務分析', stock, period)
+                self.get_statment_file('股利分配', stock, period)
