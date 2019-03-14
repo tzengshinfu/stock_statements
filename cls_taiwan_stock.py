@@ -53,19 +53,16 @@ class ClsTaiwanStock():
         Arguments:
             stock {NamedTuple('stock', [('id', str), ('name', str)])} -- 股票代號/名稱
         """
-        def get_basic_info(stock_id: str) -> List[List[str]]:
+        def get_basic_info() -> List[List[str]]:
             """
                 取得台股上巿股票基本資料
-
-                Arguments:
-                    stock_id {str} -- 股票代碼
 
                 Returns:
                     {List[List[str]]} -- 基本資料
                 """
             basic_info = dict()
 
-            self._fetcher.go_to('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + stock_id)
+            self._fetcher.go_to('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + stock.id)
 
             title = ''
             rows = self._fetcher.find_elements('//table[@class="hasBorder"]//tr')
@@ -150,12 +147,18 @@ class ClsTaiwanStock():
 
     @show_current_process
     def get_statment_file(self, table_type: str, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)])):
-        def get_statment_table(table_type: str, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)])) -> List[str]:
+        """
+        取得財務狀況Excel檔案
+
+        Arguments:
+            table_type {str} -- 表格類型
+            stock {NamedTuple('stock', [('id', str), ('name', str)])} -- 股票代碼
+            period {NamedTuple('period', [('year', str), ('season', str)])} -- 年度季別
+        """
+
+        def get_statment_table() -> List[str]:
             """
             取得表格內容
-
-            Arguments:
-                table_type {str} -- 股票代碼
 
             Returns:
                 {List[str]} -- 表格內容
