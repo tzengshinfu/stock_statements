@@ -94,7 +94,7 @@ class ClsTaiwanStock():
         book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_基本資料' + '.xlsx'
         if not self._excel.is_book_existed(book_path):
             self._excel.open_book(book_path)
-            basic_info = get_basic_info(stock.id)
+            basic_info = get_basic_info()
             self._excel.write_to_sheet(basic_info)
             self._excel.save_book(book_path)
 
@@ -221,7 +221,7 @@ class ClsTaiwanStock():
         sheet_name = period.year + '_' + period.season
         if not self._excel.is_sheet_existed(sheet_name):
             self._excel.open_sheet(sheet_name)
-            table = get_statment_table(table_type, stock, period)
+            table = get_statment_table()
             self._excel.write_to_sheet(table)
         self._excel.save_book(book_path)
 
