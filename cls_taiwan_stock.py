@@ -7,6 +7,7 @@ from typing import Union
 from typing import NamedTuple
 import PySimpleGUI as gui
 from functools import wraps
+import asyncio
 
 
 class ClsTaiwanStock():
@@ -145,7 +146,6 @@ class ClsTaiwanStock():
 
         return periods[0:top_n_seasons]
 
-    @show_current_process
     def get_statment_file(self, table_type: str, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)])):
         """
         取得財務狀況Excel檔案
@@ -279,16 +279,24 @@ class ClsTaiwanStock():
         top_n_seasons = int(config.top_n_seasons)
         periods = self.get_periods(top_n_seasons)
         period_count = len(periods)
-        self._total_process_count = stock_count + (stock_count * period_count * self._statment_file_count)
+        self._total_process_count = stock_count + (stock_count * period_count)
 
         for stock in stock_list:
             self.get_basic_info_files(stock)
 
             for period in periods:
-                self.get_statment_file('資產負債表', stock, period)
-                self.get_statment_file('總合損益表', stock, period)
-                self.get_statment_file('現金流量表', stock, period)
-                self.get_statment_file('權益變動表', stock, period)
-                self.get_statment_file('財報附註', stock, period)
-                self.get_statment_file('財務分析', stock, period)
-                self.get_statment_file('股利分配', stock, period)
+                loop = asyncio.get_event_loop()
+                loop.run_until_complete(self.get_statment_files(stock, period))
+                loop.close()
+
+    @show_current_process
+    async def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)])):
+        loop = asyncio.get_event_loop()
+        loop.run_in_executor(None, self.get_statment_file, ['資產負債表', stock, period])
+        loop.run_in_executor(None, self.get_statment_file, ['總合損益表', stock, period])
+        loop.run_in_executor(None, self.get_statment_file, ['現金流量表', stock, period])
+        loop.run_in_executor(None, self.get_statment_file, ['權益變動表', stock, period])
+        loop.run_in_executor(None, self.get_statment_file, ['財報附註', stock, period])
+        loop.run_in_executor(None, self.get_statment_file, ['財務分析', stock, period])
+        loop.run_in_executor(None, self.get_statment_file, ['股利分配', stock, period])
+        loop.close()
