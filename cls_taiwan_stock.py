@@ -17,6 +17,7 @@ class ClsTaiwanStock():
         self._statment_file_count: int = 7  # 資產負債表/總合損益表/權益變動表/現金流量表/財報附註/財務分析/財利分配
         self._current_process_count: int = 0
         self._total_process_count: int = 0
+        self._runner = asyncio.get_event_loop()
 
     def main(self):
         try:
@@ -29,6 +30,8 @@ class ClsTaiwanStock():
                 self.show_popup('取消建立!')
         except ValueError as ex:
             gui.Popup(ex)
+        finally:
+            self._runner.close()
 
     def show_current_process(function):
         @wraps(function)
@@ -285,18 +288,17 @@ class ClsTaiwanStock():
             self.get_basic_info_files(stock)
 
             for period in periods:
-                loop = asyncio.get_event_loop()
-                loop.run_until_complete(self.get_statment_files(stock, period))
-                loop.close()
+                self.get_statment_files(stock, period)
 
     @show_current_process
-    async def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)])):
-        loop = asyncio.get_event_loop()
-        loop.run_in_executor(None, self.get_statment_file, ['資產負債表', stock, period])
-        loop.run_in_executor(None, self.get_statment_file, ['總合損益表', stock, period])
-        loop.run_in_executor(None, self.get_statment_file, ['現金流量表', stock, period])
-        loop.run_in_executor(None, self.get_statment_file, ['權益變動表', stock, period])
-        loop.run_in_executor(None, self.get_statment_file, ['財報附註', stock, period])
-        loop.run_in_executor(None, self.get_statment_file, ['財務分析', stock, period])
-        loop.run_in_executor(None, self.get_statment_file, ['股利分配', stock, period])
-        loop.close()
+    def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)])):
+        async def get_statment_files_async():
+            self._runner.run_in_executor(None, self.get_statment_file, ['資產負債表', stock, period])
+            self._runner.run_in_executor(None, self.get_statment_file, ['總合損益表', stock, period])
+            self._runner.run_in_executor(None, self.get_statment_file, ['現金流量表', stock, period])
+            self._runner.run_in_executor(None, self.get_statment_file, ['權益變動表', stock, period])
+            self._runner.run_in_executor(None, self.get_statment_file, ['財報附註', stock, period])
+            self._runner.run_in_executor(None, self.get_statment_file, ['財務分析', stock, period])
+            self._runner.run_in_executor(None, self.get_statment_file, ['股利分配', stock, period])
+
+        self._runner.run_until_complete(self.get_statment_files(stock, period))
