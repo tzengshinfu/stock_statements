@@ -301,4 +301,4 @@ class ClsTaiwanStock():
             self._runner.run_in_executor(None, self.get_statment_file, ['財務分析', stock, period])
             self._runner.run_in_executor(None, self.get_statment_file, ['股利分配', stock, period])
 
-        self._runner.run_until_complete(self.get_statment_files(stock, period))
+        self._runner.run_until_complete(self.get_statment_files_async(stock, period))
