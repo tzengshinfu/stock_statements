@@ -37,10 +37,12 @@ class ClsTaiwanStockTest(unittest.TestCase):
     # endregion
 
     def test_get_basic_info_files(self):
+        self.taiwan_stock._total_process_count = 1
         for stock in self.stock_list:
             self.taiwan_stock.get_basic_info_files(stock)
 
     def test_get_statment_files(self):
+        self.taiwan_stock._total_process_count = 1
         for stock in self.stock_list:
             for period in self.periods:
                 self.get_statment_files(stock, period)
