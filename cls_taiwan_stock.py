@@ -167,40 +167,40 @@ class ClsTaiwanStock():
                 {List[str]} -- 表格內容
             """
             if table_type == '資產負債表':
-                row_xpath = '//table[@class="result_table hasBorder"]//tr[not(th)]'
+                row_xpath = '//table[@class="hasBorder"]//tr[not(th)]'
                 cell_xpath = './td[position() <= 3]'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb03'
                 data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season)
             elif table_type == '總合損益表':
-                row_xpath = '//table[@class="main_table hasBorder" and position() = 1]//tr[not(th)]'
-                cell_xpath = './td[position() <= 2]'
+                row_xpath = '//table[@class="hasBorder"]//tr[not(th)]'
+                cell_xpath = './td[position() <= 3]'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb04'
                 data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season)
             elif table_type == '現金流量表':
-                row_xpath = '//table[@class="main_table hasBorder" and position() = 2]//tr[not(th)]'
+                row_xpath = '//table[@class="hasBorder"]//tr[not(th)]'
                 cell_xpath = './td[position() <= 2]'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb05'
                 data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season)
             elif table_type == '權益變動表':
-                row_xpath = '//table[@class="result_table1 hasBorder"]//tr'
+                row_xpath = '//table[@class="hasBorder"]//tr[position() >=3]'
                 cell_xpath = './*'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb06'
                 data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season)
             elif table_type == '財報附註':
-                row_xpath = '//table[@class="main_table hasBorder" and position() = 4]//tr[not(th)]'
+                row_xpath = '//table[@class="main_table hasBorder" and position() = 5]//tr[not(th)]'
                 cell_xpath = './td[position() <= 2]'
                 url = 'http://mops.twse.com.tw/server-java/t164sb01'
                 data = 'step=1&CO_ID={0}&SYEAR=2018&SSEASON=3&REPORT_ID=C'.format(stock.id, str(int(period.year) + 1911), period.season.replace("0", ""))
             elif table_type == '財務分析':
-                row_xpath = '//table[position() = 1 and not(@class)]//tr'
-                cell_xpath = './*'
+                row_xpath = '//table[position() = 4 and not(@class)]//tr[position() >= 2]'
+                cell_xpath = './*[position() = 2 and position() = 5]'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t05st22'
-                data = 'encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.year)
+                data = 'encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, str(int(period.year) - 1))
             elif table_type == '股利分配':
                 row_xpath = '//table[@class="hasBorder"]//tr'
                 cell_xpath = './*'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t05st09'
-                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.year)
+                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, str(int(period.year) - 1))
             else:
                 raise ValueError('table_type值只能是(資產負債表/總合損益表/權益變動表/現金流量表/財報附註/財務分析/股利分配)其中之一')
 
@@ -293,12 +293,12 @@ class ClsTaiwanStock():
     @show_current_process
     def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)])):
         async def get_statment_files_async():
-            self._runner.run_in_executor(None, self.get_statment_file, ['資產負債表', stock, period])
-            self._runner.run_in_executor(None, self.get_statment_file, ['總合損益表', stock, period])
-            self._runner.run_in_executor(None, self.get_statment_file, ['現金流量表', stock, period])
-            self._runner.run_in_executor(None, self.get_statment_file, ['權益變動表', stock, period])
-            self._runner.run_in_executor(None, self.get_statment_file, ['財報附註', stock, period])
-            self._runner.run_in_executor(None, self.get_statment_file, ['財務分析', stock, period])
-            self._runner.run_in_executor(None, self.get_statment_file, ['股利分配', stock, period])
+            self._runner.run_in_executor(None, self.get_statment_file, '資產負債表', stock, period)
+            self._runner.run_in_executor(None, self.get_statment_file, '總合損益表', stock, period)
+            self._runner.run_in_executor(None, self.get_statment_file, '現金流量表', stock, period)
+            self._runner.run_in_executor(None, self.get_statment_file, '權益變動表', stock, period)
+            self._runner.run_in_executor(None, self.get_statment_file, '財報附註', stock, period)
+            self._runner.run_in_executor(None, self.get_statment_file, '財務分析', stock, period)
+            self._runner.run_in_executor(None, self.get_statment_file, '股利分配', stock, period)
 
-        self._runner.run_until_complete(self.get_statment_files_async(stock, period))
+        self._runner.run_until_complete(get_statment_files_async())

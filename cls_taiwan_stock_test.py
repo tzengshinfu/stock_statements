@@ -45,10 +45,10 @@ class ClsTaiwanStockTest(unittest.TestCase):
         self.taiwan_stock._total_process_count = 1
         for stock in self.stock_list:
             for period in self.periods:
-                self.get_statment_files(stock, period)
+                self.taiwan_stock.get_statment_files(stock, period)
 
 
 if __name__ == '__main__':
-    tests = ['test_get_basic_info_files']
+    tests = ['test_get_statment_files']
     suite = unittest.TestSuite(map(ClsTaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
