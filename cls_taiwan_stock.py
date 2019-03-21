@@ -213,7 +213,10 @@ class ClsTaiwanStock():
                 record = list()
                 cells = row.xpath(cell_xpath)
                 for cell in cells:
-                    record.append(cell.text)
+                    if cell.text is None:
+                        record.append('')
+                    else:
+                        record.append(str(cell.text).strip())
                 records.append(record)
 
             return records

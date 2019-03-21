@@ -96,12 +96,12 @@ class ClsTaiwanStockTest(unittest.TestCase):
                 self.taiwan_stock.get_statment_file('股利分配', stock, period)
 
     def clear_file(self, file_type):
-        fileList = glob.glob(tempfile.gettempdir() + '\\*' + file_type + '*.xlsx')
+        fileList = glob.glob(tempfile.gettempdir() + '\\*' + file_type + '.xlsx')
         for filePath in fileList:
                 os.remove(filePath)
 
 
 if __name__ == '__main__':
-    tests = ['test_get_statment_files_資產負債表']
+    tests = ['test_get_statment_files_現金流量表']
     suite = unittest.TestSuite(map(ClsTaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
