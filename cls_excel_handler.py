@@ -27,17 +27,17 @@ class ClsExcelHandler():
         Arguments:
             values {Union[List[List[str]], List[str], str]} -- 要寫入的值
         """
-        if type(values) is list:
+        if isinstance(values, list):
             if len(values) > 0:
-                if type(values[0]) is list:
+                if isinstance(values[0], list):
                     for currentIndex in range(0, len(values)):
                         self._sheet.append(values[currentIndex])
                 else:
                     self._sheet.append(values)
-        elif type(values) is str:
+        elif isinstance(values, str):
             self._sheet.append(values)
         else:
-            raise ValueError('values型別只能是(List[List[str]]/List[str]/str)其中之一')
+            raise ValueError('values型別只能是(list[list[str]]/list[str]/str)其中之一')
 
     def open_books_directory(self, books_path: str):
         """

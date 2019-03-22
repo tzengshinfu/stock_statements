@@ -182,13 +182,13 @@ class ClsTaiwanStock():
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb05'
                 data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season)
             elif table_type == '權益變動表':
-                row_xpath = '//table[@class="hasBorder"]//tr[position() >=3]'
+                row_xpath = '//table[@class="hasBorder" and position() = 2]//tr[position() >=3]'
                 cell_xpath = './*'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb06'
                 data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season)
             elif table_type == '財報附註':
-                row_xpath = '//table[@class="main_table hasBorder" and position() = 5]//tr[not(th)]'
-                cell_xpath = './td[position() <= 2]'
+                row_xpath = '//table[@class="main_table hasBorder" and position() = 7]//tr[not(th) and position() >= 2]'
+                cell_xpath = './td'
                 url = 'http://mops.twse.com.tw/server-java/t164sb01'
                 data = 'step=1&CO_ID={0}&SYEAR=2018&SSEASON=3&REPORT_ID=C'.format(stock.id, str(int(period.year) + 1911), period.season.replace("0", ""))
             elif table_type == '財務分析':
@@ -213,10 +213,7 @@ class ClsTaiwanStock():
                 record = list()
                 cells = row.xpath(cell_xpath)
                 for cell in cells:
-                    if cell.text is None:
-                        record.append('')
-                    else:
-                        record.append(str(cell.text).strip())
+                    record.append(''.join(cell.itertext()).strip())
                 records.append(record)
 
             return records

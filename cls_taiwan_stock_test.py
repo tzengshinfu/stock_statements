@@ -17,8 +17,6 @@ class ClsTaiwanStockTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-
-
         self.stock_list = []
         stock = typing.NamedTuple('stock', [('id', str), ('name', str)])
         stock.id = '1101'
@@ -102,6 +100,6 @@ class ClsTaiwanStockTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    tests = ['test_get_statment_files_現金流量表']
+    tests = ['test_get_statment_files_財報附註']
     suite = unittest.TestSuite(map(ClsTaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
