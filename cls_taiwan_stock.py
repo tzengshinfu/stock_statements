@@ -290,6 +290,8 @@ class ClsTaiwanStock():
             for period in periods:
                 self.get_statment_files(stock, period)
 
+            self._fetcher.wait(2, 5)
+
     @show_current_process
     def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)])):
         async def get_statment_files_async():

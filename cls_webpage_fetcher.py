@@ -2,6 +2,8 @@ import requests
 import tempfile
 from lxml import etree
 from retry import retry
+import time
+import random
 from typing import List
 
 
@@ -101,3 +103,13 @@ class ClsWebpageFetcher():
         """
         elements = self._tree.xpath(elements_xpath)
         return elements
+
+    def wait(self, at_least_seconds: int, at_most_seconds: int):
+        """
+        暫停隨機秒數
+
+        Arguments:
+            at_least_seconds {int} -- 至少暫停秒數
+            at_most_seconds {int} -- 最多暫停秒數
+        """
+        time.sleep(random.randint(at_least_seconds, at_most_seconds))
