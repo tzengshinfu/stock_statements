@@ -100,6 +100,6 @@ class ClsTaiwanStockTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    tests = ['test_get_statment_files_財報附註']
+    tests = ['test_get_statment_files_財務分析']
     suite = unittest.TestSuite(map(ClsTaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)
