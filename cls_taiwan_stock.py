@@ -193,7 +193,7 @@ class ClsTaiwanStock():
                 data = 'step=1&CO_ID={0}&SYEAR=2018&SSEASON=3&REPORT_ID=C'.format(stock.id, str(int(period.year) + 1911), period.season.replace("0", ""))
             elif table_type == '財務分析':
                 row_xpath = '//table[@style = "width:90%;"]//tr[position() >= 2]'
-                cell_xpath = './*[position() = 2 or position() = 5]'
+                cell_xpath = './th[@style = "text-align:left !important;"] | ./td[position() = 3]'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t05st22'
                 data = 'encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, str(int(period.year) - 1))
             elif table_type == '股利分配':
