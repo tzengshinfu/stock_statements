@@ -122,7 +122,7 @@ class ClsTaiwanStock():
 
         return stock_list
 
-    def get_periods(self, top_n_seasons: int = 0) -> List[NamedTuple('period', [('year', str), ('season', str)])]:
+    def get_periods(self, top_n_seasons: int = 0) -> List[NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])]:
         self._fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01')
 
         years = self._fetcher.find_elements('//select[@id="SYEAR"]//option/@value')
@@ -142,21 +142,22 @@ class ClsTaiwanStock():
                                 (season == '02' and datetime.datetime.now() > second_season_date) or
                                 (season == '03' and datetime.datetime.now() > third_season_date) or
                                 (season == '04' and datetime.datetime.now() > fourth_season_date)):
-                            period = NamedTuple('period', [('year', str), ('season', str)])
-                            period.year = str(int(year) - 1911)
+                            period = NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])
+                            period.roc_year = str(int(year) - 1911)
+                            period.ad_year = str(year)
                             period.season = season
                             periods.append(period)
 
         return periods[0:top_n_seasons]
 
-    def get_statment_file(self, table_type: str, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)])):
+    def get_statment_file(self, table_type: str, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])):
         """
         取得財務狀況Excel檔案
 
         Arguments:
             table_type {str} -- 表格類型
             stock {NamedTuple('stock', [('id', str), ('name', str)])} -- 股票代碼
-            period {NamedTuple('period', [('year', str), ('season', str)])} -- 年度季別
+            period {NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])} -- 年度季別
         """
 
         def get_statment_table() -> List[str]:
@@ -170,37 +171,37 @@ class ClsTaiwanStock():
                 row_xpath = '//table[@class="hasBorder"]//tr[not(th)]'
                 cell_xpath = './td[position() <= 3]'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb03'
-                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season)
+                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.roc_year, period.season)
             elif table_type == '總合損益表':
                 row_xpath = '//table[@class="hasBorder"]//tr[not(th)]'
                 cell_xpath = './td[position() <= 3]'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb04'
-                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season)
+                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.roc_year, period.season)
             elif table_type == '現金流量表':
                 row_xpath = '//table[@class="hasBorder"]//tr[not(th)]'
                 cell_xpath = './td[position() <= 2]'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb05'
-                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season)
+                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.roc_year, period.season)
             elif table_type == '權益變動表':
                 row_xpath = '//table[@class="hasBorder" and position() = 2]//tr[position() >=3]'
                 cell_xpath = './*'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb06'
-                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.year, period.season)
+                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}&season={2}'.format(stock.id, period.roc_year, period.season)
             elif table_type == '財報附註':
                 row_xpath = '//table[@class="main_table hasBorder" and position() = 7]//tr[not(th) and position() >= 2]'
                 cell_xpath = './td'
                 url = 'http://mops.twse.com.tw/server-java/t164sb01'
-                data = 'step=1&CO_ID={0}&SYEAR=2018&SSEASON=3&REPORT_ID=C'.format(stock.id, str(int(period.year) + 1911), period.season.replace("0", ""))
+                data = 'step=1&CO_ID={0}&SYEAR=2018&SSEASON=3&REPORT_ID=C'.format(stock.id, period.ad_year, period.season.replace("0", ""))
             elif table_type == '財務分析':
                 row_xpath = '//table[@style = "width:90%;"]//tr[position() >= 2]'
                 cell_xpath = './th[@style = "text-align:left !important;"] | ./td[position() = 3]'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t05st22'
-                data = 'encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, str(int(period.year) - 1))
+                data = 'encodeURIComponent=1&run=Y&step=1&TYPEK=sii&year={1}&isnew=true&co_id={0}&firstin=1&off=1&ifrs=Y'.format(stock.id, period.roc_year)
             elif table_type == '股利分配':
                 row_xpath = '//table[@class="hasBorder"]//tr'
                 cell_xpath = './*'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t05st09'
-                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, str(int(period.year) - 1))
+                data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=true&co_id={0}&year={1}'.format(stock.id, period.roc_year)
             else:
                 raise ValueError('table_type值只能是(資產負債表/總合損益表/權益變動表/現金流量表/財報附註/財務分析/股利分配)其中之一')
 
@@ -221,7 +222,7 @@ class ClsTaiwanStock():
         book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
         self._excel.open_book(book_path)
 
-        sheet_name = period.year + '_' + period.season
+        sheet_name = period.ad_year + '_' + period.season
         if not self._excel.is_sheet_existed(sheet_name):
             self._excel.open_sheet(sheet_name)
             table = get_statment_table()
@@ -277,23 +278,26 @@ class ClsTaiwanStock():
         gui.Popup(message)
 
     def get_stock_files(self, config: NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)])):
-        stock_list = self.get_stock_list()[0:1]
+        stock_list = self.get_stock_list()
         stock_count = len(stock_list)
         top_n_seasons = int(config.top_n_seasons)
         periods = self.get_periods(top_n_seasons)
         period_count = len(periods)
         self._total_process_count = stock_count + (stock_count * period_count)
+        roc_years = self.get_roc_years(periods)
 
         for stock in stock_list:
             self.get_basic_info_files(stock)
 
-            for period in periods:
-                self.get_statment_files(stock, period)
+            for roc_year in roc_years:
+                self.get_statment_file
+                for period in periods:
+                    self.get_statment_files(stock, period)
 
             self._fetcher.wait(2, 5)
 
     @show_current_process
-    def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('year', str), ('season', str)])):
+    def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])):
         async def get_statment_files_async():
             self._runner.run_in_executor(None, self.get_statment_file, '資產負債表', stock, period)
             self._runner.run_in_executor(None, self.get_statment_file, '總合損益表', stock, period)
@@ -304,3 +308,11 @@ class ClsTaiwanStock():
             self._runner.run_in_executor(None, self.get_statment_file, '股利分配', stock, period)
 
         self._runner.run_until_complete(get_statment_files_async())
+
+    def get_roc_years(self, periods: List[NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])]):
+        years = list()
+
+        for period in periods:
+            years.append(period.roc_year)
+
+        return years

@@ -20,12 +20,22 @@ class ClsTaiwanStockTest(unittest.TestCase):
         self.stock_list = []
         stock = typing.NamedTuple('stock', [('id', str), ('name', str)])
         stock.id = '1101'
+        stock.name = '台泥'
+        self.stock_list.append(stock)
+        stock = typing.NamedTuple('stock', [('id', str), ('name', str)])
+        stock.id = '1102'
         stock.name = '亞泥'
         self.stock_list.append(stock)
         self.periods = []
-        period = typing.NamedTuple('period', [('year', str), ('season', str)])
-        period.year = '107'
+        period = typing.NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])
+        period.roc_year = '106'
+        period.ad_year = '2017'
         period.season = '03'
+        self.periods.append(period)
+        period = typing.NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])
+        period.roc_year = '106'
+        period.ad_year = '2017'
+        period.season = '02'
         self.periods.append(period)
 
     @classmethod
