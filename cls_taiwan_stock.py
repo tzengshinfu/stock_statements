@@ -191,7 +191,7 @@ class ClsTaiwanStock():
                 row_xpath = '//table[@class="main_table hasBorder" and position() = 7]//tr[not(th) and position() >= 2]'
                 cell_xpath = './td'
                 url = 'http://mops.twse.com.tw/server-java/t164sb01'
-                data = 'step=1&CO_ID={0}&SYEAR=2018&SSEASON=3&REPORT_ID=C'.format(stock.id, period.ad_year, period.season.replace("0", ""))
+                data = 'step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.ad_year, period.season.replace("0", ""))
             elif table_type == '財務分析':
                 row_xpath = '//table[@style = "width:90%;"]//tr[position() >= 2]'
                 cell_xpath = './th[@style = "text-align:left !important;"] | ./td[position() = 3]'
@@ -290,9 +290,10 @@ class ClsTaiwanStock():
             self.get_basic_info_files(stock)
 
             for roc_year in roc_years:
-                self.get_statment_file
+                self.get_statment_file('財務分析', stock, period)
                 for period in periods:
-                    self.get_statment_files(stock, period)
+                    if (roc_year == period.roc_year):
+                        self.get_statment_files(stock, period)
 
             self._fetcher.wait(2, 5)
 
