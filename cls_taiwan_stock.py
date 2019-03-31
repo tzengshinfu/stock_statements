@@ -290,7 +290,7 @@ class ClsTaiwanStock():
             self.get_basic_info_files(stock)
 
             for roc_year in roc_years:
-                self.get_statment_file('財務分析', stock, period)
+                self.get_analysis_file(stock, roc_year)
                 for period in periods:
                     if (roc_year == period.roc_year):
                         self.get_statment_files(stock, period)
@@ -317,3 +317,8 @@ class ClsTaiwanStock():
             years.append(period.roc_year)
 
         return years
+
+    def get_analysis_file(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), roc_year: str):
+        period = NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])
+        period.roc_year = roc_year
+        self.get_statment_file('財務分析', stock, period)
