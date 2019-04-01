@@ -283,19 +283,18 @@ class ClsTaiwanStock():
         top_n_seasons = int(config.top_n_seasons)
         periods = self.get_periods(top_n_seasons)
         period_count = len(periods)
-        self._total_process_count = stock_count + (stock_count * period_count)
         roc_years = self.get_roc_years(periods)
+        roc_year_count = len(roc_years)
+        self._total_process_count = stock_count + (stock_count * roc_year_count) + (stock_count * period_count)
 
         for stock in stock_list:
+            self._fetcher.wait(2, 5)
             self.get_basic_info_files(stock)
-
             for roc_year in roc_years:
                 self.get_analysis_file(stock, roc_year)
                 for period in periods:
                     if (roc_year == period.roc_year):
                         self.get_statment_files(stock, period)
-
-            self._fetcher.wait(2, 5)
 
     @show_current_process
     def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])):
@@ -305,7 +304,6 @@ class ClsTaiwanStock():
             self._runner.run_in_executor(None, self.get_statment_file, '現金流量表', stock, period)
             self._runner.run_in_executor(None, self.get_statment_file, '權益變動表', stock, period)
             self._runner.run_in_executor(None, self.get_statment_file, '財報附註', stock, period)
-            self._runner.run_in_executor(None, self.get_statment_file, '財務分析', stock, period)
             self._runner.run_in_executor(None, self.get_statment_file, '股利分配', stock, period)
 
         self._runner.run_until_complete(get_statment_files_async())
@@ -318,6 +316,7 @@ class ClsTaiwanStock():
 
         return years
 
+    @show_current_process
     def get_analysis_file(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), roc_year: str):
         period = NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])
         period.roc_year = roc_year
