@@ -113,8 +113,39 @@ class ClsTaiwanStockTest(unittest.TestCase):
         for filePath in fileList:
                 os.remove(filePath)
 
+    def test_get_stock_files(self):
+        self.stock_list = []
+        stock = typing.NamedTuple('stock', [('id', str), ('name', str)])
+        stock.id = '1101'
+        stock.name = '台泥'
+        self.stock_list.append(stock)
+        stock = typing.NamedTuple('stock', [('id', str), ('name', str)])
+        stock.id = '1102'
+        stock.name = '亞泥'
+        self.stock_list.append(stock)
+        self.periods = []
+        period = typing.NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])
+        period.roc_year = '106'
+        period.ad_year = '2017'
+        period.season = '03'
+        self.periods.append(period)
+        period = typing.NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])
+        period.roc_year = '106'
+        period.ad_year = '2017'
+        period.season = '02'
+        self.periods.append(period)
+
+        for stock in self.stock_list:
+            self.taiwan_stock.get_basic_info_files(stock)
+            for roc_year in ['2017']:
+                self.get_analysis_file(stock, roc_year)
+                for period in self.periods:
+                    if (roc_year == period.roc_year):
+                        self.get_statment_files(stock, period)
+            self._fetcher.wait(2, 5)
+
 
 if __name__ == '__main__':
-    tests = ['test_get_statment_files_資產負債表']
+    tests = ['test_get_stock_files']
     suite = unittest.TestSuite(map(ClsTaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

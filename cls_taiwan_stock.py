@@ -14,7 +14,6 @@ class ClsTaiwanStock():
     def __init__(self):
         self._fetcher = ClsWebpageFetcher()
         self._excel = ClsExcelHandler()
-        self._statment_file_count: int = 7  # 資產負債表/總合損益表/權益變動表/現金流量表/財報附註/財務分析/財利分配
         self._current_process_count: int = 0
         self._total_process_count: int = 0
         self._runner = asyncio.get_event_loop()
@@ -46,7 +45,6 @@ class ClsTaiwanStock():
                        self._total_process_count * 100), 2)) + '%')
 
             return func
-
         return wrapper
 
     @show_current_process
@@ -280,21 +278,20 @@ class ClsTaiwanStock():
     def get_stock_files(self, config: NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)])):
         stock_list = self.get_stock_list()
         stock_count = len(stock_list)
-        top_n_seasons = int(config.top_n_seasons)
-        periods = self.get_periods(top_n_seasons)
+        periods = self.get_periods(int(config.top_n_seasons))
         period_count = len(periods)
         roc_years = self.get_roc_years(periods)
         roc_year_count = len(roc_years)
         self._total_process_count = stock_count + (stock_count * roc_year_count) + (stock_count * period_count)
 
         for stock in stock_list:
-            self._fetcher.wait(2, 5)
             self.get_basic_info_files(stock)
             for roc_year in roc_years:
                 self.get_analysis_file(stock, roc_year)
                 for period in periods:
                     if (roc_year == period.roc_year):
                         self.get_statment_files(stock, period)
+            self._fetcher.wait(2, 5)
 
     @show_current_process
     def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])):
