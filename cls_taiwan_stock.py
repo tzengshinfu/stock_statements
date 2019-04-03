@@ -120,7 +120,7 @@ class ClsTaiwanStock():
 
         return stock_list
 
-    def get_periods(self, top_n_seasons: int = 0) -> List[NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])]:
+    def _get_periods(self, top_n_seasons: int = 0) -> List[NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])]:
         self._fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01')
 
         years = self._fetcher.find_elements('//select[@id="SYEAR"]//option/@value')
@@ -141,8 +141,8 @@ class ClsTaiwanStock():
                                 (season == '03' and datetime.datetime.now() > third_season_date) or
                                 (season == '04' and datetime.datetime.now() > fourth_season_date)):
                             period = NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])
+                            period.ad_year = year
                             period.roc_year = str(int(year) - 1911)
-                            period.ad_year = str(year)
                             period.season = season
                             periods.append(period)
 
@@ -278,9 +278,9 @@ class ClsTaiwanStock():
     def get_stock_files(self, config: NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)])):
         stock_list = self.get_stock_list()
         stock_count = len(stock_list)
-        periods = self.get_periods(int(config.top_n_seasons))
+        periods = self._get_periods(int(config.top_n_seasons))
         period_count = len(periods)
-        roc_years = self.get_roc_years(periods)
+        roc_years = self._get_roc_years(periods)
         roc_year_count = len(roc_years)
         self._total_process_count = stock_count + (stock_count * roc_year_count) + (stock_count * period_count)
 
@@ -305,7 +305,7 @@ class ClsTaiwanStock():
 
         self._runner.run_until_complete(get_statment_files_async())
 
-    def get_roc_years(self, periods: List[NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])]):
+    def _get_roc_years(self, periods: List[NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])]):
         years = list()
 
         for period in periods:
@@ -317,4 +317,6 @@ class ClsTaiwanStock():
     def get_analysis_file(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), roc_year: str):
         period = NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])
         period.roc_year = roc_year
+        period.ad_year = str(int(roc_year) + 1911)
+        period.season = "00"
         self.get_statment_file('財務分析', stock, period)
