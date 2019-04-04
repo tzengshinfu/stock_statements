@@ -114,6 +114,13 @@ class ClsTaiwanStockTest(unittest.TestCase):
                 os.remove(filePath)
 
     def test_get_stock_files(self):
+        self.clear_file('資產負債表')
+        self.clear_file('總合損益表')
+        self.clear_file('現金流量表')
+        self.clear_file('權益變動表')
+        self.clear_file('財報附註')
+        self.clear_file('財務分析')
+        self.clear_file('股利分配')
         stock = typing.NamedTuple('stock', [('id', str), ('name', str)])
         stock.id = '1102'
         stock.name = '亞泥'
