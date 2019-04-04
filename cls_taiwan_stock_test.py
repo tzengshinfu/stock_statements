@@ -132,7 +132,6 @@ class ClsTaiwanStockTest(unittest.TestCase):
                 for period in self.periods:
                     if (roc_year == period.roc_year):
                         self.taiwan_stock.get_statment_files(stock, period)
-            self._fetcher.wait(2, 5)
 
 
 if __name__ == '__main__':
