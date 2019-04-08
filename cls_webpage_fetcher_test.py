@@ -28,7 +28,7 @@ class ClsWebpageFetcherTest(unittest.TestCase):
         self.webpage_fetcher.go_to('https://www.google.com')
 
     def test_download_file(self):
-        pdf_path = self.webpage_fetcher.download_file('http://doc.twse.com.tw/pdf/201801_1101_AI1_20181108_084034.pdf')
+        pdf_path = self.webpage_fetcher.download_file('http://doc.twse.com.tw/pdf/201801_1101_AI1_20181108_084034.pdf', 'D:\\Temp')
         self.assertEqual(pdf_path, 'D:\\Temp\\201801_1101_AI1_20181108_084034.pdf')
 
     def test_find_elements(self):

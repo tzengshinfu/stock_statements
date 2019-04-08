@@ -1,7 +1,6 @@
 from openpyxl import Workbook
 from openpyxl.compat import range
 import os
-import tempfile
 from typing import Union
 from typing import List
 from openpyxl import load_workbook
@@ -9,7 +8,7 @@ from openpyxl import load_workbook
 
 class ClsExcelHandler():
     def __init__(self):
-        self._books_path = tempfile.gettempdir()
+        pass
 
     def save_book(self, book_path: str):
         """
@@ -48,7 +47,6 @@ class ClsExcelHandler():
         """
         if not os.path.exists(books_path):
             os.makedirs(books_path)
-        self._books_path = books_path
 
     def open_book(self, book_path: str):
         """

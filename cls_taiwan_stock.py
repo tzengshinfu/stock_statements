@@ -17,12 +17,14 @@ class ClsTaiwanStock():
         self._current_process_count: int = 0
         self._total_process_count: int = 0
         self._runner = asyncio.get_event_loop()
+        self._books_path: str = ''
 
     def main(self):
         try:
             config = self.show_config_form()
             if config.action == 'Submit':
-                self._excel.open_books_directory(config.drive_letter + ':\\' + config.directory_name)
+                self._books_path = config.drive_letter + ':\\' + config.directory_name
+                self._excel.open_books_directory(self._books_path)
                 self.get_stock_files(config)
                 self.show_popup('建立完成。')
             else:
@@ -93,7 +95,7 @@ class ClsTaiwanStock():
 
             return basic_info_list
 
-        book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_基本資料' + '.xlsx'
+        book_path = self._books_path + '\\' + stock.id + '(' + stock.name + ')_基本資料' + '.xlsx'
         if not self._excel.is_book_existed(book_path):
             self._excel.open_book(book_path)
             basic_info = get_basic_info()
@@ -217,7 +219,7 @@ class ClsTaiwanStock():
 
             return records
 
-        book_path = self._excel._books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
+        book_path = self._books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
         self._excel.open_book(book_path)
 
         sheet_name = period.ad_year + '_' + period.season

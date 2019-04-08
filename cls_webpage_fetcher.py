@@ -1,5 +1,4 @@
 import requests
-import tempfile
 from lxml import etree
 from retry import retry
 import time
@@ -9,7 +8,7 @@ from typing import List
 
 class ClsWebpageFetcher():
     def __init__(self):
-        self._tempdir_path = tempfile.gettempdir()
+        pass
 
     @retry((ConnectionError, ConnectionRefusedError), tries=3, delay=10)
     def _get_response(self, url: str, method: str, data: str) -> requests.Response:
@@ -51,7 +50,7 @@ class ClsWebpageFetcher():
         else:
             raise ValueError('method值只能是(get/post/download)其中之一')
 
-    def download_file(self, url: str) -> str:
+    def download_file(self, url: str, path: str) -> str:
         """
         下載檔案
 
@@ -63,7 +62,7 @@ class ClsWebpageFetcher():
         """
         response = self._get_response(url, 'download')
 
-        file_path = self._tempdir_path + '\\' + url.split('/')[-1]
+        file_path = path + '\\' + url.split('/')[-1]
         with open(file_path, 'wb') as stream:
             for chunk in response.iter_content(chunk_size=1024):
                 if chunk:
