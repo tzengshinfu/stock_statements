@@ -53,21 +53,21 @@ class ClsTaiwanStock():
         取得台股上巿股票基本資料檔案
 
         Arguments:
-            stock {NamedTuple('stock', [('id', str), ('name', str)])} -- 股票代號/名稱
+        stock -- 股票代號/名稱
         """
         def get_basic_info() -> List[List[str]]:
             """
                 取得台股上巿股票基本資料
 
                 Returns:
-                    {List[List[str]]} -- 基本資料
+                基本資料
                 """
             basic_info = dict()
 
-            self._fetcher.go_to('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + stock.id)
+            html = self._fetcher.get_html('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + stock.id)
 
             title = ''
-            rows = self._fetcher.find_elements('//table[@class="hasBorder"]//tr')
+            rows = self._fetcher.find_elements(html, '//table[@class="hasBorder"]//tr')
             for row in rows:
                 if (row[0].text.strip() == '本公司'):
                     basic_info[row[2].text.strip()] = row[1].text.strip()
@@ -105,13 +105,13 @@ class ClsTaiwanStock():
         取得台股上巿股票代號/名稱列表
 
         Returns:
-            {List[NamedTuple('stock', [('id', str), ('name', str)])]} -- 股票代號/名稱列表
+        股票代號/名稱列表
         """
         stock_list = list()
 
-        self._fetcher.go_to('http://www.twse.com.tw/zh/stockSearch/stockSearch')
+        html = self._fetcher.get_html('http://www.twse.com.tw/zh/stockSearch/stockSearch')
 
-        stock_datas = self._fetcher.find_elements('//table[@class="grid"]//a/text()')
+        stock_datas = self._fetcher.find_elements(html, '//table[@class="grid"]//a/text()')
         for stock_data in stock_datas:
             stock = NamedTuple('stock', [('id', str), ('name', str)])
             stock.id = stock_data[0:4]
@@ -121,9 +121,9 @@ class ClsTaiwanStock():
         return stock_list
 
     def _get_periods(self, top_n_seasons: int = 0) -> List[NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])]:
-        self._fetcher.go_to('http://mops.twse.com.tw/server-java/t164sb01')
+        html = self._fetcher.get_html('http://mops.twse.com.tw/server-java/t164sb01')
 
-        years = self._fetcher.find_elements('//select[@id="SYEAR"]//option/@value')
+        years = self._fetcher.find_elements(html, '//select[@id="SYEAR"]//option/@value')
         current_year = datetime.datetime.now().year
 
         periods = list()
@@ -153,9 +153,9 @@ class ClsTaiwanStock():
         取得財務狀況Excel檔案
 
         Arguments:
-            table_type {str} -- 表格類型
-            stock {NamedTuple('stock', [('id', str), ('name', str)])} -- 股票代碼
-            period {NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])} -- 年度季別
+        table_type -- 表格類型(資產負債表/總合損益表/權益變動表/現金流量表/財報附註/財務分析/股利分配)
+        stock -- 股票代碼
+        period -- 年度季別
         """
 
         def get_statment_table() -> List[str]:
@@ -163,7 +163,7 @@ class ClsTaiwanStock():
             取得表格內容
 
             Returns:
-                {List[str]} -- 表格內容
+            表格內容
             """
             if table_type == '資產負債表':
                 row_xpath = '//table[@class="hasBorder"]//tr[not(th)]'
@@ -205,8 +205,8 @@ class ClsTaiwanStock():
 
             records = list()
 
-            self._fetcher.go_to(url, 'post', data)
-            rows = self._fetcher.find_elements(row_xpath)
+            html = self._fetcher.get_html(url, 'post', data)
+            rows = self._fetcher.find_elements(html, row_xpath)
 
             for row in rows:
                 record = list()
@@ -249,7 +249,7 @@ class ClsTaiwanStock():
         開啟設定介面
 
         Returns:
-            NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)]) -- 執行動作/磁碟代號/目錄名稱/前n季
+        設定結果(執行動作+磁碟代號+目錄名稱+前n季)
         """
         form = gui.FlexForm('設定台股上巿股票Excel存放路徑')
         layout = [[gui.Text('請輸入下載Excel存放的磁碟代號及目錄名稱')], [gui.Text('磁碟代號', size=(15, 1), key='Drive'), gui.InputText('Z')], [gui.Text('目錄名稱', size=(15, 1), key='Folder'), gui.InputText('Excel')], [gui.Text('請輸入前n季(0=不限)')], [gui.Text('季數', size=(15, 1), key='TopNSeasons'), gui.InputText('1')], [gui.Submit(), gui.Cancel()]]
@@ -271,7 +271,7 @@ class ClsTaiwanStock():
         顯示跳顯訊息
 
         Arguments:
-            message {str} -- 訊息文字
+        message -- 訊息文字
         """
         gui.Popup(message)
 

@@ -16,7 +16,7 @@ class ClsExcelHandler():
         儲存活頁簿
 
         Arguments:
-            book_path {str} -- 本機路徑
+        book_path -- 本機路徑
         """
         self._book.save(book_path)
 
@@ -25,7 +25,7 @@ class ClsExcelHandler():
         寫入工作表
 
         Arguments:
-            values {Union[List[List[str]], List[str], str]} -- 要寫入的值
+        values -- 要寫入的值
         """
         if isinstance(values, list):
             if len(values) > 0:
@@ -44,7 +44,7 @@ class ClsExcelHandler():
         開啟活頁簿預設儲存目錄
 
         Arguments:
-            books_path {str} -- 本機路徑
+        books_path -- 本機路徑
         """
         if not os.path.exists(books_path):
             os.makedirs(books_path)
@@ -55,7 +55,7 @@ class ClsExcelHandler():
         開啟活頁簿(不存在則先建立)
 
         Arguments:
-            book_path {str} -- 本機路徑
+        book_path -- 本機路徑
         """
         if not self.is_book_existed(book_path):
             self._book = Workbook()
@@ -68,7 +68,7 @@ class ClsExcelHandler():
         開啟工作表(不存在則先建立)
 
         Arguments:
-            sheet_name {str} -- 工作表名稱
+        sheet_name -- 工作表名稱
         """
         if not self.is_sheet_existed(sheet_name):
             self._book.create_sheet(sheet_name)
@@ -80,10 +80,10 @@ class ClsExcelHandler():
         判斷活頁簿是否存在
 
         Arguments:
-            book_path {str} -- 本機路徑
+        book_path -- 本機路徑
 
         Returns:
-            bool -- 回傳結果
+        回傳結果
         """
         return os.path.exists(book_path)
 
@@ -92,10 +92,10 @@ class ClsExcelHandler():
         判斷工作表是否存在
 
         Arguments:
-            sheet_name {str} -- 工作表名稱
+        sheet_name -- 工作表名稱
 
         Returns:
-            bool -- 回傳結果
+        回傳結果
         """
         if sheet_name in self._book.sheetnames:
             return True
