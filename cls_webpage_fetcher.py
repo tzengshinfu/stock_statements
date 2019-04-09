@@ -108,9 +108,9 @@ class ClsWebpageFetcher():
         """
         time.sleep(random.randint(least_seconds, most_seconds))
 
-    def get_html(self, url: str, method: str = 'get', data: str = None) -> etree.HTML:
+    def download_html(self, url: str, method: str = 'get', data: str = None) -> etree.HTML:
         """
-        取得網頁Html
+        下載網頁Html
 
         Arguments:
         url -- 網址

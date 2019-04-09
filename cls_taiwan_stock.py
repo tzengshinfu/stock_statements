@@ -17,14 +17,14 @@ class ClsTaiwanStock():
         self._current_process_count: int = 0
         self._total_process_count: int = 0
         self._runner = asyncio.get_event_loop()
-        self._books_path: str = ''
+        self.books_path: str = ''
 
     def main(self):
         try:
             config = self.show_config_form()
             if config.action == 'Submit':
-                self._books_path = config.drive_letter + ':\\' + config.directory_name
-                self._excel.open_books_directory(self._books_path)
+                self.books_path = config.drive_letter + ':\\' + config.directory_name
+                self._excel.open_books_directory(self.books_path)
                 self.get_stock_files(config)
                 self.show_popup('建立完成。')
             else:
@@ -66,7 +66,7 @@ class ClsTaiwanStock():
                 """
             basic_info = dict()
 
-            html = self._fetcher.get_html('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + stock.id)
+            html = self._fetcher.download_html('http://mops.twse.com.tw/mops/web/t05st03', 'post', 'firstin=1&co_id=' + stock.id)
 
             title = ''
             rows = self._fetcher.find_elements(html, '//table[@class="hasBorder"]//tr')
@@ -95,7 +95,7 @@ class ClsTaiwanStock():
 
             return basic_info_list
 
-        book_path = self._books_path + '\\' + stock.id + '(' + stock.name + ')_基本資料' + '.xlsx'
+        book_path = self.books_path + '\\' + stock.id + '(' + stock.name + ')_基本資料' + '.xlsx'
         if not self._excel.is_book_existed(book_path):
             self._excel.open_book(book_path)
             basic_info = get_basic_info()
@@ -111,7 +111,7 @@ class ClsTaiwanStock():
         """
         stock_list = list()
 
-        html = self._fetcher.get_html('http://www.twse.com.tw/zh/stockSearch/stockSearch')
+        html = self._fetcher.download_html('http://www.twse.com.tw/zh/stockSearch/stockSearch')
 
         stock_datas = self._fetcher.find_elements(html, '//table[@class="grid"]//a/text()')
         for stock_data in stock_datas:
@@ -123,7 +123,7 @@ class ClsTaiwanStock():
         return stock_list
 
     def _get_periods(self, top_n_seasons: int = 0) -> List[NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])]:
-        html = self._fetcher.get_html('http://mops.twse.com.tw/server-java/t164sb01')
+        html = self._fetcher.download_html('http://mops.twse.com.tw/server-java/t164sb01')
 
         years = self._fetcher.find_elements(html, '//select[@id="SYEAR"]//option/@value')
         current_year = datetime.datetime.now().year
@@ -207,7 +207,7 @@ class ClsTaiwanStock():
 
             records = list()
 
-            html = self._fetcher.get_html(url, 'post', data)
+            html = self._fetcher.download_html(url, 'post', data)
             rows = self._fetcher.find_elements(html, row_xpath)
 
             for row in rows:
@@ -219,7 +219,7 @@ class ClsTaiwanStock():
 
             return records
 
-        book_path = self._books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
+        book_path = self.books_path + '\\' + stock.id + '(' + stock.name + ')_{0}'.format(table_type) + '.xlsx'
         self._excel.open_book(book_path)
 
         sheet_name = period.ad_year + '_' + period.season

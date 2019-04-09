@@ -17,6 +17,7 @@ class ClsTaiwanStockTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
+        self.taiwan_stock.books_path = tempfile.gettempdir()
         self.stock_list = []
         stock = typing.NamedTuple('stock', [('id', str), ('name', str)])
         stock.id = '1101'
