@@ -129,6 +129,10 @@ class ClsTaiwanStockTest(unittest.TestCase):
                     if (roc_year == period.roc_year):
                         self.taiwan_stock.get_statment_files(stock, period)
 
+    def test_stock_list(self):
+        stock_list = self.taiwan_stock.get_stock_list('1101')
+        self.assertTrue(len(stock_list) == 1 and stock_list[0].id == '1101')
+
 
 if __name__ == '__main__':
     tests = ['test_get_stock_files']

@@ -7,7 +7,6 @@ from typing import Union
 from typing import NamedTuple
 import PySimpleGUI as gui
 from functools import wraps
-import asyncio
 
 
 class ClsTaiwanStock():
@@ -16,7 +15,6 @@ class ClsTaiwanStock():
         self._excel = ClsExcelHandler()
         self._current_process_count: int = 0
         self._total_process_count: int = 0
-        self._runner = asyncio.get_event_loop()
         self.books_path: str = ''
 
     def main(self):
@@ -102,7 +100,7 @@ class ClsTaiwanStock():
             self._excel.write_to_sheet(basic_info)
             self._excel.save_book(book_path)
 
-    def get_stock_list(self) -> List[NamedTuple('stock', [('id', str), ('name', str)])]:
+    def get_stock_list(self, stock_id: str = '') -> List[NamedTuple('stock', [('id', str), ('name', str)])]:
         """
         取得台股上巿股票代號/名稱列表
 
@@ -113,12 +111,17 @@ class ClsTaiwanStock():
 
         html = self._fetcher.download_html('http://www.twse.com.tw/zh/stockSearch/stockSearch')
 
-        stock_datas = self._fetcher.find_elements(html, '//table[@class="grid"]//a/text()')
-        for stock_data in stock_datas:
+        stock_items = self._fetcher.find_elements(html, '//table[@class="grid"]//a/text()')
+        for stock_item in stock_items:
             stock = NamedTuple('stock', [('id', str), ('name', str)])
-            stock.id = stock_data[0:4]
-            stock.name = stock_data[4:]
-            stock_list.append(stock)
+            stock.id = stock_item[0:4]
+            stock.name = stock_item[4:]
+            if stock.id != stock_id:
+                stock_list.append(stock)
+            else:
+                one_stock = list()
+                one_stock.append(stock)
+                return one_stock
 
         return stock_list
 
@@ -246,7 +249,7 @@ class ClsTaiwanStock():
 
         return result
 
-    def show_config_form(self) -> NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)]):
+    def show_config_form(self) -> NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('stock_id', str), ('top_n_seasons', str)]):
         """
         開啟設定介面
 
@@ -254,17 +257,18 @@ class ClsTaiwanStock():
         設定結果(執行動作+磁碟代號+目錄名稱+前n季)
         """
         form = gui.FlexForm('設定台股上巿股票Excel存放路徑')
-        layout = [[gui.Text('請輸入下載Excel存放的磁碟代號及目錄名稱')], [gui.Text('磁碟代號', size=(15, 1), key='Drive'), gui.InputText('Z')], [gui.Text('目錄名稱', size=(15, 1), key='Folder'), gui.InputText('Excel')], [gui.Text('請輸入前n季(0=不限)')], [gui.Text('季數', size=(15, 1), key='TopNSeasons'), gui.InputText('1')], [gui.Submit(), gui.Cancel()]]
+        layout = [[gui.Text('請輸入下載Excel存放的磁碟代號及目錄名稱')], [gui.Text('磁碟代號', size=(15, 1), key='Drive'), gui.InputText('Z')], [gui.Text('目錄名稱', size=(15, 1), key='Folder'), gui.InputText('Excel')], [gui.Text('請輸入股票代碼(未輸入=不限)')], [gui.Text('代碼', size=(15, 1), key='StockId'), gui.InputText('')], [gui.Text('請輸入最近n季(0=不限)')], [gui.Text('季數', size=(15, 1), key='TopNSeasons'), gui.InputText('1')], [gui.Submit(), gui.Cancel()]]
         window = form.Layout(layout)
         return_values = window.Read()
 
         window.Close()
 
-        result = NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)])
+        result = NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('stock_id', str), ('top_n_seasons', str)])
         result.action = return_values[0]
         result.drive_letter = return_values[1][0]
         result.directory_name = return_values[1][1]
-        result.top_n_seasons = return_values[1][2]
+        result.stock_id = return_values[1][2]
+        result.top_n_seasons = return_values[1][3]
 
         return result
 
@@ -277,8 +281,8 @@ class ClsTaiwanStock():
         """
         gui.Popup(message)
 
-    def get_stock_files(self, config: NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('top_n_seasons', str)])):
-        stock_list = self.get_stock_list()
+    def get_stock_files(self, config: NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('stock_id', str), ('top_n_seasons', str)])):
+        stock_list = self.get_stock_list(config.stock_id)
         stock_count = len(stock_list)
         periods = self._get_periods(int(config.top_n_seasons))
         period_count = len(periods)
@@ -297,15 +301,12 @@ class ClsTaiwanStock():
 
     @show_current_process
     def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])):
-        async def get_statment_files_async():
-            self._runner.run_in_executor(None, self.get_statment_file, '資產負債表', stock, period)
-            self._runner.run_in_executor(None, self.get_statment_file, '總合損益表', stock, period)
-            self._runner.run_in_executor(None, self.get_statment_file, '現金流量表', stock, period)
-            self._runner.run_in_executor(None, self.get_statment_file, '權益變動表', stock, period)
-            self._runner.run_in_executor(None, self.get_statment_file, '財報附註', stock, period)
-            self._runner.run_in_executor(None, self.get_statment_file, '股利分配', stock, period)
-
-        self._runner.run_until_complete(get_statment_files_async())
+        self.get_statment_file('資產負債表', stock, period)
+        self.get_statment_file('總合損益表', stock, period)
+        self.get_statment_file('現金流量表', stock, period)
+        self.get_statment_file('權益變動表', stock, period)
+        self.get_statment_file('財報附註', stock, period)
+        self.get_statment_file('股利分配', stock, period)
 
     def _get_roc_years(self, periods: List[NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])]):
         years = list()
