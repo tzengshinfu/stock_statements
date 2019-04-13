@@ -29,8 +29,6 @@ class ClsTaiwanStock():
                 self.show_popup('取消建立!')
         except ValueError as ex:
             gui.Popup(ex)
-        finally:
-            self._runner.close()
 
     def show_current_process(function):
         @wraps(function)
@@ -43,11 +41,19 @@ class ClsTaiwanStock():
             print('完成進度:' + str(
                 round((self._current_process_count /
                        self._total_process_count * 100), 2)) + '%')
+            return func
+        return wrapper
 
+    def delay(function):
+        @wraps(function)
+        def wrapper(self, *args, **kwargs):
+            func = function(self, *args, **kwargs)
+            self._fetcher.wait(5, 10)
             return func
         return wrapper
 
     @show_current_process
+    @delay
     def get_basic_info_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)])):
         """
         取得台股上巿股票基本資料檔案
@@ -153,6 +159,8 @@ class ClsTaiwanStock():
 
         return periods[0:top_n_seasons]
 
+    @show_current_process
+    @delay
     def get_statment_file(self, table_type: str, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])):
         """
         取得財務狀況Excel檔案
@@ -297,9 +305,7 @@ class ClsTaiwanStock():
                 for period in periods:
                     if (roc_year == period.roc_year):
                         self.get_statment_files(stock, period)
-            self._fetcher.wait(2, 5)
 
-    @show_current_process
     def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])):
         self.get_statment_file('資產負債表', stock, period)
         self.get_statment_file('總合損益表', stock, period)
@@ -317,6 +323,7 @@ class ClsTaiwanStock():
         return years
 
     @show_current_process
+    @delay
     def get_analysis_file(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), roc_year: str):
         period = NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])
         period.roc_year = roc_year

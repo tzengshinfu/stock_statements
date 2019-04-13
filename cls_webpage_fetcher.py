@@ -10,7 +10,7 @@ class ClsWebpageFetcher():
     def __init__(self):
         pass
 
-    @retry((ConnectionError, ConnectionRefusedError), tries=3, delay=10)
+    @retry((ConnectionError, ConnectionRefusedError), tries=3, delay=30)
     def _get_response(self, url: str, method: str, data: str) -> requests.Response:
         """
         取得瀏覽器回應
