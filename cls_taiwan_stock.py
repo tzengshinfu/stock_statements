@@ -7,6 +7,7 @@ from typing import Union
 from typing import NamedTuple
 import PySimpleGUI as gui
 from functools import wraps
+from win10toast import ToastNotifier
 
 
 class ClsTaiwanStock():
@@ -16,6 +17,7 @@ class ClsTaiwanStock():
         self._current_process_count: int = 0
         self._total_process_count: int = 0
         self.books_path: str = ''
+        self.notifier = ToastNotifier()
 
     def main(self):
         try:
@@ -33,14 +35,10 @@ class ClsTaiwanStock():
     def show_current_process(function):
         @wraps(function)
         def wrapper(self, *args, **kwargs):
-            print('完成進度:' + str(
-                round((self._current_process_count /
-                       self._total_process_count * 100), 2)) + '%')
+            self.notifier.show_toast('Stock Statments', '完成進度:' + str(round((self._current_process_count / self._total_process_count * 100), 2)) + '%', duration=10)
             func = function(self, *args, **kwargs)
             self._current_process_count += 1
-            print('完成進度:' + str(
-                round((self._current_process_count /
-                       self._total_process_count * 100), 2)) + '%')
+            self.notifier.show_toast('Stock Statments', '完成進度:' + str(round((self._current_process_count / self._total_process_count * 100), 2)) + '%', duration=10)
             return func
         return wrapper
 
