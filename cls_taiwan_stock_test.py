@@ -133,8 +133,18 @@ class ClsTaiwanStockTest(unittest.TestCase):
         stock_list = self.taiwan_stock.get_stock_list('1101')
         self.assertTrue(len(stock_list) == 1 and stock_list[0].id == '1101')
 
+    def test_get_statment_files_會計報告(self):
+        stock = typing.NamedTuple('stock', [('id', str), ('name', str)])
+        stock.id = '1213'
+        stock.name = '大飲'
+        period = typing.NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])
+        period.roc_year = '107'
+        period.ad_year = '2018'
+        period.season = '04'
+        self.taiwan_stock.get_statment_file('會計報告', stock, period)
+
 
 if __name__ == '__main__':
-    tests = ['test_get_stock_files']
+    tests = ['test_get_statment_files_會計報告']
     suite = unittest.TestSuite(map(ClsTaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

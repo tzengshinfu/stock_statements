@@ -164,7 +164,7 @@ class ClsTaiwanStock():
         取得財務狀況Excel檔案
 
         Arguments:
-        table_type -- 表格類型(資產負債表/總合損益表/權益變動表/現金流量表/財報附註/財務分析/股利分配)
+        table_type -- 表格類型(資產負債表/總合損益表/權益變動表/現金流量表/財報附註/財務分析/股利分配/會計報告)
         stock -- 股票代碼
         period -- 年度季別
         """
@@ -211,8 +211,13 @@ class ClsTaiwanStock():
                 cell_xpath = './*'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t05st09'
                 data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=false&co_id={0}&year={1}'.format(stock.id, period.roc_year)
+            elif table_type == '會計報告':
+                row_xpath = '//table[@class="main_table hasBorder" and contains(., "會計師查核報告")]//tr[position() >= 2]'
+                cell_xpath = './td'
+                url = 'http://mops.twse.com.tw/server-java/t164sb01'
+                data = 'step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.ad_year, period.season.replace("0", ""))
             else:
-                raise ValueError('table_type值只能是(資產負債表/總合損益表/權益變動表/現金流量表/財報附註/財務分析/股利分配)其中之一')
+                raise ValueError('table_type值只能是(資產負債表/總合損益表/權益變動表/現金流量表/財報附註/財務分析/股利分配/會計報告)其中之一')
 
             records = list()
 
@@ -311,6 +316,7 @@ class ClsTaiwanStock():
         self.get_statment_file('權益變動表', stock, period)
         self.get_statment_file('財報附註', stock, period)
         self.get_statment_file('股利分配', stock, period)
+        self.get_statment_file('會計報告', stock, period)
 
     def _get_roc_years(self, periods: List[NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])]):
         years = list()
