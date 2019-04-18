@@ -145,6 +145,6 @@ class ClsTaiwanStockTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    tests = ['test_get_statment_files_會計報告']
+    tests = ['test_get_stock_files']
     suite = unittest.TestSuite(map(ClsTaiwanStockTest, tests))
     unittest.TextTestRunner(verbosity=2).run(suite)

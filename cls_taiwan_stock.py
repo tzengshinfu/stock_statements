@@ -42,16 +42,18 @@ class ClsTaiwanStock():
             return func
         return wrapper
 
-    def delay(function):
-        @wraps(function)
-        def wrapper(self, *args, **kwargs):
-            func = function(self, *args, **kwargs)
-            self._fetcher.wait(5, 10)
-            return func
-        return wrapper
+    def delay(least_seconds: int, most_seconds: int):
+        def outter_wrapper(function):
+            @wraps(function)
+            def inner_wrapper(self, *args, **kwargs):
+                func = function(self, *args, **kwargs)
+                self._fetcher.wait(least_seconds, most_seconds)
+                return func
+            return inner_wrapper
+        return outter_wrapper
 
     @show_current_process
-    @delay
+    @delay(3, 5)
     def get_basic_info_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)])):
         """
         取得台股上巿股票基本資料檔案
@@ -158,7 +160,7 @@ class ClsTaiwanStock():
         return periods[0:top_n_seasons]
 
     @show_current_process
-    @delay
+    @delay(3, 5)
     def get_statment_file(self, table_type: str, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])):
         """
         取得財務狀況Excel檔案
@@ -327,7 +329,7 @@ class ClsTaiwanStock():
         return years
 
     @show_current_process
-    @delay
+    @delay(3, 5)
     def get_analysis_file(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), roc_year: str):
         period = NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])
         period.roc_year = roc_year
