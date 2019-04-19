@@ -152,7 +152,7 @@ class ClsTaiwanStock():
                             period.season = season
                             periods.append(period)
 
-        return periods[start_season:finish_season]
+        return periods[start_season - 1:finish_season]
 
     @show_current_process
     @delay(3, 5)
