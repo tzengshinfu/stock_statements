@@ -106,7 +106,7 @@ class ClsTaiwanStock():
             self._excel.write_to_sheet(basic_info)
             self._excel.save_book(book_path)
 
-    def get_stock_list(self, stock_id: str = '') -> List[NamedTuple('stock', [('id', str), ('name', str)])]:
+    def get_stock_list(self, start_stock_id: str = '', finish_stock_id: str = '') -> List[NamedTuple('stock', [('id', str), ('name', str)])]:
         """
         取得台股上巿股票代號/名稱列表
 
@@ -122,16 +122,11 @@ class ClsTaiwanStock():
             stock = NamedTuple('stock', [('id', str), ('name', str)])
             stock.id = stock_item[0:4]
             stock.name = stock_item[4:]
-            if stock.id != stock_id:
+            if stock.id >= (start_stock_id if start_stock_id != '' else '0000') and stock.id <= (finish_stock_id if finish_stock_id != '' else '9999'):
                 stock_list.append(stock)
-            else:
-                one_stock = list()
-                one_stock.append(stock)
-                return one_stock
-
         return stock_list
 
-    def _get_periods(self, top_n_seasons: int = 0) -> List[NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])]:
+    def _get_periods(self, start_season: int = 0, finish_season: int = 0) -> List[NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])]:
         html = self._fetcher.download_html('http://mops.twse.com.tw/server-java/t164sb01')
 
         years = self._fetcher.find_elements(html, '//select[@id="SYEAR"]//option/@value')
@@ -157,7 +152,7 @@ class ClsTaiwanStock():
                             period.season = season
                             periods.append(period)
 
-        return periods[0:top_n_seasons]
+        return periods[start_season:finish_season]
 
     @show_current_process
     @delay(3, 5)
@@ -262,7 +257,7 @@ class ClsTaiwanStock():
 
         return result
 
-    def show_config_form(self) -> NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('stock_id', str), ('top_n_seasons', str)]):
+    def show_config_form(self) -> NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('start_stock_id', str), ('finish_stock_id', str), ('start_season', str), ('finish_season', str)]):
         """
         開啟設定介面
 
@@ -270,18 +265,29 @@ class ClsTaiwanStock():
         設定結果(執行動作+磁碟代號+目錄名稱+前n季)
         """
         form = gui.FlexForm('設定台股上巿股票Excel存放路徑')
-        layout = [[gui.Text('請輸入下載Excel存放的磁碟代號及目錄名稱')], [gui.Text('磁碟代號', size=(15, 1), key='Drive'), gui.InputText('Z')], [gui.Text('目錄名稱', size=(15, 1), key='Folder'), gui.InputText('Excel')], [gui.Text('請輸入股票代碼(未輸入=不限)')], [gui.Text('代碼', size=(15, 1), key='StockId'), gui.InputText('')], [gui.Text('請輸入最近n季(0=不限)')], [gui.Text('季數', size=(15, 1), key='TopNSeasons'), gui.InputText('1')], [gui.Submit(), gui.Cancel()]]
+        layout = [
+            [gui.Text('請輸入下載Excel存放的磁碟代號及目錄名稱')],
+            [gui.Text('磁碟代號', size=(15, 1), key='Drive'), gui.InputText('Z')],
+            [gui.Text('目錄名稱', size=(15, 1), key='Folder'), gui.InputText('Excel')],
+            [gui.Text('請輸入起始股票代碼(未輸入=不限)')], [gui.Text('代碼', size=(15, 1), key='StartStockId'), gui.InputText('')],
+            [gui.Text('請輸入結束股票代碼(未輸入=不限)')], [gui.Text('代碼', size=(15, 1), key='FinishStockId'), gui.InputText('')],
+            [gui.Text('請輸入起始季數(0=不限)')], [gui.Text('季數', size=(15, 1), key='StartSeason'), gui.InputText('1')],
+            [gui.Text('請輸入結束季數(0=不限)')], [gui.Text('季數', size=(15, 1), key='FinishSeason'), gui.InputText('1')],
+            [gui.Submit(), gui.Cancel()]
+            ]
         window = form.Layout(layout)
         return_values = window.Read()
 
         window.Close()
 
-        result = NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('stock_id', str), ('top_n_seasons', str)])
+        result = NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('start_stock_id', str), ('finish_stock_id', str), ('start_season', str), ('finish_season', str)])
         result.action = return_values[0]
         result.drive_letter = return_values[1][0]
         result.directory_name = return_values[1][1]
-        result.stock_id = return_values[1][2]
-        result.top_n_seasons = return_values[1][3]
+        result.start_stock_id = return_values[1][2]
+        result.finish_stock_id = return_values[1][3]
+        result.start_season = return_values[1][3]
+        result.finish_season = return_values[1][3]
 
         return result
 
@@ -294,10 +300,10 @@ class ClsTaiwanStock():
         """
         gui.Popup(message)
 
-    def get_stock_files(self, config: NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('stock_id', str), ('top_n_seasons', str)])):
-        stock_list = self.get_stock_list(config.stock_id)
+    def get_stock_files(self, config: NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('start_stock_id', str), ('finish_stock_id', str), ('start_season', str), ('finish_season', str)])):
+        stock_list = self.get_stock_list(config.start_stock_id, config.finish_stock_id)
         stock_count = len(stock_list)
-        periods = self._get_periods(int(config.top_n_seasons))
+        periods = self._get_periods(int(config.start_season), int(config.finish_season))
         period_count = len(periods)
         roc_years = self._get_roc_years(periods)
         roc_year_count = len(roc_years)
