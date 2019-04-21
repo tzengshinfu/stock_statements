@@ -256,7 +256,7 @@ class ClsTaiwanStock():
         form = gui.FlexForm('設定台股上巿股票Excel存放路徑')
         layout = [
             [gui.Text('請輸入下載Excel存放的磁碟代號及目錄名稱')],
-            [gui.Text('磁碟代號', size=(15, 1), key='Drive'), gui.InputText('Z')],
+            [gui.Text('磁碟代號', size=(15, 1), key='Drive'), gui.InputText('D')],
             [gui.Text('目錄名稱', size=(15, 1), key='Folder'), gui.InputText('Excel')],
             [gui.Text('請輸入起始股票代碼(未輸入=不限)')], [gui.Text('代碼', size=(15, 1), key='StartStockId'), gui.InputText('')],
             [gui.Text('請輸入結束股票代碼(未輸入=不限)')], [gui.Text('代碼', size=(15, 1), key='FinishStockId'), gui.InputText('')],
