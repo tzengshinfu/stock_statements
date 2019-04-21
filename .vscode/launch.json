@@ -6,10 +6,10 @@
     "configurations": [
 
         {
-            "name": "Python: stock_statments.py (Integrated Terminal)",
+            "name": "Python: stock_statements.py (Integrated Terminal)",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/stock_statments.py",
+            "program": "${workspaceFolder}/stock_statements.py",
             "console": "integratedTerminal"
         },
         {

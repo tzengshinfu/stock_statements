@@ -35,10 +35,9 @@ class ClsTaiwanStock():
     def show_current_process(function):
         @wraps(function)
         def wrapper(self, *args, **kwargs):
-            self.notifier.show_toast('Stock Statments', '完成進度:' + str(round((self._current_process_count / self._total_process_count * 100), 2)) + '%', duration=10)
             func = function(self, *args, **kwargs)
             self._current_process_count += 1
-            self.notifier.show_toast('Stock Statments', '完成進度:' + str(round((self._current_process_count / self._total_process_count * 100), 2)) + '%', duration=10)
+            self.notifier.show_toast('Stock Statments', '完成進度:' + str(round((self._current_process_count / self._total_process_count * 100), 2)) + '%', duration=1)
             return func
         return wrapper
 
@@ -90,7 +89,7 @@ class ClsTaiwanStock():
 
         book_path = self.books_path + '\\' + stock.id + '(' + stock.name + ')_基本資料' + '.xlsx'
         if not self._excel.is_book_existed(book_path):
-            self._fetcher.wait(3, 5)
+            self._fetcher.wait(2, 3)
             self._excel.open_book(book_path)
             basic_info = get_basic_info()
             self._excel.write_to_sheet(basic_info)
@@ -224,7 +223,7 @@ class ClsTaiwanStock():
 
         sheet_name = period.ad_year + '_' + period.season
         if not self._excel.is_sheet_existed(sheet_name):
-            self._fetcher.wait(3, 5)
+            self._fetcher.wait(2, 3)
             self._excel.open_sheet(sheet_name)
             table = get_statment_table()
             self._excel.write_to_sheet(table)
@@ -324,7 +323,6 @@ class ClsTaiwanStock():
 
         return years
 
-    @show_current_process
     def get_analysis_file(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), roc_year: str):
         period = NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])
         period.roc_year = roc_year
