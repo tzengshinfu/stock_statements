@@ -26,7 +26,7 @@ class ClsTaiwanStock():
                 self.books_path = config.drive_letter + ':\\' + config.directory_name
                 self._excel.open_books_directory(self.books_path)
                 self.get_stock_files(config)
-                self.show_popup('建立完成。')
+                self.notifier.show_toast('Stock Statments', '建立完成')
             else:
                 self.show_popup('取消建立!')
         except ValueError as ex:
@@ -288,6 +288,7 @@ class ClsTaiwanStock():
         message -- 訊息文字
         """
         gui.Popup(message)
+        pass
 
     def get_stock_files(self, config: NamedTuple('result', [('action', str), ('drive_letter', str), ('directory_name', str), ('start_stock_id', str), ('finish_stock_id', str), ('start_season', str), ('finish_season', str)])):
         stock_list = self.get_stock_list(config.start_stock_id, config.finish_stock_id)
