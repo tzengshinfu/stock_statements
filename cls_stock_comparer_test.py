@@ -2,9 +2,11 @@ import unittest
 from pathlib import Path
 import os
 import fnmatch
+from cls_excel_handler import ClsExcelHandler
 
 
 class ClsStockComparerTest(unittest.TestCase):
+    excel_handler = ClsExcelHandler()
 
     # region 初始方法
     def __init__(self, *args, **kwargs):
@@ -34,7 +36,10 @@ class ClsStockComparerTest(unittest.TestCase):
                 stock_ids.append(stock_id)
         for file in os.listdir('D:\\Excel'):
             if fnmatch.fnmatch(file, stock_id + '*_現金流量表.xlsx'):
-                print(file)
+                self.excel_handler.open_book('D:\\Excel\\' + file)
+                for row in range(1, self.excel_handler._sheet.max_row):
+                    if '利息費用' in self.excel_handler._sheet.cell(row, 1).value:
+                        interest = self.excel_handler._sheet.cell(row, 2).value
 
 
 if __name__ == '__main__':
