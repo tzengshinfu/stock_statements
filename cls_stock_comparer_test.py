@@ -35,18 +35,20 @@ class ClsStockComparerTest(unittest.TestCase):
             if stock_id not in stock_ids:
                 stock_ids.append(stock_id)
         for file in os.listdir('D:\\Excel'):
+            income_before_tax = 0
             if fnmatch.fnmatch(file, stock_id + '*_總合損益表.xlsx'):
                 self.excel_handler.open_book('D:\\Excel\\' + file)
                 for row in range(1, self.excel_handler._sheet.max_row):
                     if '稅前淨利' in self.excel_handler._sheet.cell(row, 1).value:
                         income_before_tax = self.excel_handler._sheet.cell(row, 2).value.replace(",", "")
         for file in os.listdir('D:\\Excel'):
+            interest = 0
             if fnmatch.fnmatch(file, stock_id + '*_現金流量表.xlsx'):
                 self.excel_handler.open_book('D:\\Excel\\' + file)
                 for row in range(1, self.excel_handler._sheet.max_row):
                     if '利息費用' in self.excel_handler._sheet.cell(row, 1).value:
                         interest = self.excel_handler._sheet.cell(row, 2).value.replace(",", "")
-        ebit = (int(income_before_tax) + int(interest)) / int(interest)
+        ebit = (int(income_before_tax) + int(interest)) / int(interest) if int(interest) > 0 else 0
         self.excel_handler.open_book('D:\\Excel\\' + stock_id + ".xlsx")
         self.excel_handler._sheet.cell(row, 1).value = ebit
         pass
@@ -59,12 +61,16 @@ class ClsStockComparerTest(unittest.TestCase):
                 if stock_id not in stock_ids:
                     stock_ids.append(stock_id)
             for file in os.listdir('D:\\Excel'):
+                income_before_tax = 0
                 if fnmatch.fnmatch(file, stock_id + '*_總合損益表.xlsx'):
                     self.excel_handler.open_book('D:\\Excel\\' + file)
                     for row in range(1, self.excel_handler._sheet.max_row):
                         if '稅前淨利' in self.excel_handler._sheet.cell(row, 1).value:
                             income_before_tax = self.excel_handler._sheet.cell(row, 2).value.replace(",", "")
             for file in os.listdir('D:\\Excel'):
+                capital = 0
+                current_liabilities = 0
+                current_finance_liabilities = 0
                 if fnmatch.fnmatch(file, stock_id + '*_資產負債表.xlsx'):
                     self.excel_handler.open_book('D:\\Excel\\' + file)
                     for row in range(1, self.excel_handler._sheet.max_row):
@@ -72,7 +78,9 @@ class ClsStockComparerTest(unittest.TestCase):
                             capital = self.excel_handler._sheet.cell(row, 2).value.replace(",", "")
                         if '流動負債合計' in self.excel_handler._sheet.cell(row, 1).value:
                             current_liabilities = self.excel_handler._sheet.cell(row, 2).value.replace(",", "")
-            roa = int(income_before_tax) / (int(capital) - int(current_liabilities))
+                        if '透過損益按公允價值衡量之金融負債－流動' in self.excel_handler._sheet.cell(row, 1).value:
+                            current_finance_liabilities = self.excel_handler._sheet.cell(row, 2).value.replace(",", "")
+            roa = int(income_before_tax) / (int(capital) - (int(current_liabilities) + int(current_finance_liabilities))) if (int(capital) - (int(current_liabilities) + int(current_finance_liabilities))) > 0 else 0
             self.excel_handler.open_book('D:\\Excel\\' + stock_id + ".xlsx")
             self.excel_handler._sheet.cell(row, 1).value = roa
             pass
