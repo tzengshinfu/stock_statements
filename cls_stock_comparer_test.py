@@ -3,10 +3,14 @@ from pathlib import Path
 import os
 import fnmatch
 from cls_excel_handler import ClsExcelHandler
+from cls_taiwan_stock import ClsTaiwanStock
 
 
 class ClsStockComparerTest(unittest.TestCase):
     excel_handler = ClsExcelHandler()
+    taiwain_stock = ClsTaiwanStock()
+    stock_ids = list()
+    periods = list()
 
     # region 初始方法
     def __init__(self, *args, **kwargs):
@@ -21,7 +25,8 @@ class ClsStockComparerTest(unittest.TestCase):
         pass
 
     def setUp(self):
-        pass
+        self.stock_ids = self.taiwain_stock.get_stock_list('', '')
+        self.periods = self.taiwain_stock._get_periods('1', '1')
 
     def tearDown(self):
         pass
@@ -49,7 +54,8 @@ class ClsStockComparerTest(unittest.TestCase):
                     if '利息費用' in self.excel_handler._sheet.cell(row, 1).value:
                         interest = self.excel_handler._sheet.cell(row, 2).value.replace(",", "")
         ebit = (int(income_before_tax) + int(interest)) / int(interest) if int(interest) > 0 else 0
-        self.excel_handler.open_book('D:\\Excel\\' + stock_id + ".xlsx")
+        self.excel_handler.open_book('D:\\Excel\\評估法.xlsx')
+        self.excel_handler.open_sheet(stock_id)
         self.excel_handler._sheet.cell(row, 1).value = ebit
         pass
 
