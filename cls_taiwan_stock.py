@@ -149,7 +149,7 @@ class ClsTaiwanStock():
         取得財務狀況Excel檔案
 
         Arguments:
-        table_type -- 表格類型(資產負債表/總合損益表/權益變動表/現金流量表/財報附註/財務分析/股利分配/會計報告)
+        table_type -- 表格類型(資產負債表/綜合損益表/權益變動表/現金流量表/財報附註/財務分析/股利分配/會計報告)
         stock -- 股票代碼
         period -- 年度季別
         """
@@ -166,7 +166,7 @@ class ClsTaiwanStock():
                 cell_xpath = './td[position() <= 3]'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb03'
                 data = 'encodeURIComponent=1&step=1&firstin=1&off=1&keyword4=&code1=&TYPEK2=&checkbtn=&queryName=co_id&inpuType=co_id&TYPEK=all&isnew=false&co_id={0}&year={1}&season={2}'.format(stock.id, period.roc_year, period.season)
-            elif table_type == '總合損益表':
+            elif table_type == '綜合損益表':
                 row_xpath = '//table[@class="hasBorder"]//tr[not(th)]'
                 cell_xpath = './td[position() <= 3]'
                 url = 'http://mops.twse.com.tw/mops/web/ajax_t164sb04'
@@ -202,7 +202,7 @@ class ClsTaiwanStock():
                 url = 'http://mops.twse.com.tw/server-java/t164sb01'
                 data = 'step=1&CO_ID={0}&SYEAR={1}&SSEASON={2}&REPORT_ID=C'.format(stock.id, period.ad_year, period.season.replace("0", ""))
             else:
-                raise ValueError('table_type值只能是(資產負債表/總合損益表/權益變動表/現金流量表/財報附註/財務分析/股利分配/會計報告)其中之一')
+                raise ValueError('table_type值只能是(資產負債表/綜合損益表/權益變動表/現金流量表/財報附註/財務分析/股利分配/會計報告)其中之一')
 
             records = list()
 
@@ -309,7 +309,7 @@ class ClsTaiwanStock():
 
     def get_statment_files(self, stock: NamedTuple('stock', [('id', str), ('name', str)]), period: NamedTuple('period', [('roc_year', str), ('ad_year', str), ('season', str)])):
         self.get_statment_file('資產負債表', stock, period)
-        self.get_statment_file('總合損益表', stock, period)
+        self.get_statment_file('綜合損益表', stock, period)
         self.get_statment_file('現金流量表', stock, period)
         self.get_statment_file('權益變動表', stock, period)
         self.get_statment_file('財報附註', stock, period)

@@ -38,7 +38,7 @@ class ClsTaiwanStockTest(unittest.TestCase):
     def setUp(self):
         self._clear_file('基本資料')
         self._clear_file('資產負債表')
-        self._clear_file('總合損益表')
+        self._clear_file('綜合損益表')
         self._clear_file('現金流量表')
         self._clear_file('權益變動表')
         self._clear_file('財報附註')
@@ -62,12 +62,12 @@ class ClsTaiwanStockTest(unittest.TestCase):
         else:
             self.assertTrue(os.path.isfile(tempfile.gettempdir() + '\\' + '1101(台泥)_資產負債表.xlsx'))
 
-    def test_get_statment_files_總合損益表(self):
+    def test_get_statment_files_綜合損益表(self):
         for stock in self.stock_list:
             for period in self.periods:
-                self.taiwan_stock.get_statment_file('總合損益表', stock, period)
+                self.taiwan_stock.get_statment_file('綜合損益表', stock, period)
         else:
-            self.assertTrue(os.path.isfile(tempfile.gettempdir() + '\\' + '1101(台泥)_總合損益表.xlsx'))
+            self.assertTrue(os.path.isfile(tempfile.gettempdir() + '\\' + '1101(台泥)_綜合損益表.xlsx'))
 
     def test_get_statment_files_現金流量表(self):
         for stock in self.stock_list:

@@ -41,7 +41,7 @@ class ClsStockComparerTest(unittest.TestCase):
                 stock_ids.append(stock_id)
         for file in os.listdir('D:\\Excel'):
             income_before_tax = 0
-            if fnmatch.fnmatch(file, stock_id + '*_總合損益表.xlsx'):
+            if fnmatch.fnmatch(file, stock_id + '*_綜合損益表.xlsx'):
                 self.excel_handler.open_book('D:\\Excel\\' + file)
                 for row in range(1, self.excel_handler._sheet.max_row):
                     if '稅前淨利' in self.excel_handler._sheet.cell(row, 1).value:
@@ -68,7 +68,7 @@ class ClsStockComparerTest(unittest.TestCase):
                     stock_ids.append(stock_id)
             for file in os.listdir('D:\\Excel'):
                 income_before_tax = 0
-                if fnmatch.fnmatch(file, stock_id + '*_總合損益表.xlsx'):
+                if fnmatch.fnmatch(file, stock_id + '*_綜合損益表.xlsx'):
                     self.excel_handler.open_book('D:\\Excel\\' + file)
                     for row in range(1, self.excel_handler._sheet.max_row):
                         if '稅前淨利' in self.excel_handler._sheet.cell(row, 1).value:
